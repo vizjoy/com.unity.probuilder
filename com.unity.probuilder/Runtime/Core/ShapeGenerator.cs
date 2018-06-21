@@ -63,7 +63,8 @@ namespace UnityEngine.ProBuilder
 		/// <remarks>
 		/// The tastiest of all shapes.
 		/// </remarks>
-		Torus
+		Torus,
+        Ladder
 	}
 
 	/// <summary>
@@ -73,20 +74,20 @@ namespace UnityEngine.ProBuilder
 	{
 		static readonly Vector3[] k_IcosphereVertices = new Vector3[12]
 		{
-			new Vector3(-1f,  Math.phi,  0f),
-			new Vector3( 1f,  Math.phi,  0f),
-			new Vector3(-1f, -Math.phi,  0f),
-			new Vector3( 1f, -Math.phi,  0f),
+			new Vector3(-1f,  Math.phi,  0f), //0   
+			new Vector3( 1f,  Math.phi,  0f), //1   
+			new Vector3(-1f, -Math.phi,  0f), //2
+			new Vector3( 1f, -Math.phi,  0f), //3
 
-			new Vector3( 0f, -1f,  Math.phi),
-			new Vector3( 0f,  1f,  Math.phi),
-			new Vector3( 0f, -1f, -Math.phi),
-			new Vector3( 0f,  1f, -Math.phi),
+			new Vector3( 0f, -1f,  Math.phi), //4 
+			new Vector3( 0f,  1f,  Math.phi), //5
+			new Vector3( 0f, -1f, -Math.phi), //6
+			new Vector3( 0f,  1f, -Math.phi), //7
 
-			new Vector3(  Math.phi, 0f, -1f),
-			new Vector3(  Math.phi, 0f,  1f),
-			new Vector3( -Math.phi, 0f, -1f),
-			new Vector3( -Math.phi, 0f,  1f)
+			new Vector3(  Math.phi, 0f, -1f), //8
+			new Vector3(  Math.phi, 0f,  1f), //9
+			new Vector3( -Math.phi, 0f, -1f), //10
+			new Vector3( -Math.phi, 0f,  1f) //11
 		};
 
 		static readonly int[] k_IcosphereTriangles = new int[60]
@@ -137,7 +138,12 @@ namespace UnityEngine.ProBuilder
 		/// A set of triangles forming a cube with reference to the VERTICES_CUBE array.
 		/// </summary>
 		static readonly int[] k_CubeTriangles = new int[] {
-			0, 1, 4, 5, 1, 2, 5, 6, 2, 3, 6, 7, 3, 0, 7, 4, 4, 5, 7, 6, 3, 2, 0, 1
+			0, 1, 4, 5,
+		    1, 2, 5, 6,
+		    2, 3, 6, 7,
+		    3, 0, 7, 4,
+		    4, 5, 7, 6,
+		    3, 2, 0, 1
 		};
 
 		/// <summary>
@@ -175,7 +181,8 @@ namespace UnityEngine.ProBuilder
 				pb = IcosahedronGenerator(.5f, 2, true, false);
 			if (shape == ShapeType.Torus)
 				pb = TorusGenerator(12, 16, 1f, .3f, true, 360f, 360f);
-
+            if (shape == ShapeType.Ladder)
+                pb = LadderGenerator(2,3f, 3f, 1f, 2f, 0.5f);
 			if (pb == null)
 			{
 #if DEBUG
@@ -201,8 +208,8 @@ namespace UnityEngine.ProBuilder
 			// 4 vertices per quad, 2 quads per step.
 			Vector3[] vertices = new Vector3[4 * steps * 2];
 			Face[] faces = new Face[steps * 2];
-
-			// vertex index, face index
+                                                                                                                                                                                                              
+			// vertex index, face index                               
 			int v = 0, t = 0;
 
 			for(int i = 0; i < steps; i++)
@@ -758,12 +765,12 @@ namespace UnityEngine.ProBuilder
 
 			Vector3[] template = new Vector3[6]
 			{
-				Vector3.Scale(new Vector3(-.5f, 0f, -.5f), 	size),
-				Vector3.Scale(new Vector3(.5f, 0f, -.5f), 	size),
-				Vector3.Scale(new Vector3(0f, .5f, -.5f), 	size),
-				Vector3.Scale(new Vector3(-.5f, 0f, .5f), 	size),
-				Vector3.Scale(new Vector3(0.5f, 0f, .5f), 	size),
-				Vector3.Scale(new Vector3(0f, .5f, .5f), 	size)
+				Vector3.Scale(new Vector3(-.5f, 0f, -.5f), 	size), //0
+				Vector3.Scale(new Vector3(.5f, 0f, -.5f), 	size), //1      
+				Vector3.Scale(new Vector3(0f, .5f, -.5f), 	size), //2
+				Vector3.Scale(new Vector3(-.5f, 0f, .5f), 	size), //3
+				Vector3.Scale(new Vector3(0.5f, 0f, .5f), 	size), //4
+				Vector3.Scale(new Vector3(0f, .5f, .5f), 	size)  //5
 			};
 
 			Vector3[] v = new Vector3[18]
@@ -805,6 +812,142 @@ namespace UnityEngine.ProBuilder
 			pb.gameObject.name = "Prism";
 			return pb;
 		}
+
+        /// <summary>
+        /// Create a ladder.
+        /// </summary>
+        /// <param name="steps">Number of steps</param>
+        /// <param name="totalHeight">Total height of the ladder</param>
+        /// <param name="totalWidtht">Total width of the ladder</param>
+        /// <param name="stepHeight">The heghit of each step</param>
+        /// <param name="stepWidth">The width of each step</param>
+        /// <param name="distance">The distance between the front and back faces of the ladder object</param>
+        /// <returns>A new GameObject with a reference to the ProBuilderMesh component.</returns>
+        /// 
+        public static ProBuilderMesh LadderGenerator(int steps, float totalHeight, float totalWidth, float stepHeight, float stepWidth, float distance)
+        {
+            
+            float x0 = totalWidth / 2f;
+            float x1 = stepWidth / 2f;
+
+            float legWidth = x0 - x1;
+
+            float yCoord = ((totalHeight) - stepHeight) / 2f;
+
+             Vector3[] _vertices = new Vector3[steps*16];
+
+            // instantiation of all the vertics
+             int i = 0;
+             for (int j=0; j<steps; j++)
+             {
+
+                     _vertices[i + 0] = new Vector3(-x0, totalHeight * j , distance);
+                     _vertices[i + 1] = new Vector3(-(x0 - legWidth), totalHeight * j, distance);
+                     _vertices[i + 2] = new Vector3(x0 - legWidth, totalHeight * j, distance);
+                     _vertices[i + 3] = new Vector3(x0 , totalHeight * j, distance);
+
+                     _vertices[i + 4] = new Vector3(-x0, ((totalHeight * j) + yCoord ), distance);
+                     _vertices[i + 5] = new Vector3(-(x0 - legWidth), ((totalHeight * j) + yCoord), distance);
+                     _vertices[i + 6] = new Vector3(x0 - legWidth, ((totalHeight * j) + yCoord), distance);
+                     _vertices[i + 7] = new Vector3(x0 , ((totalHeight * j) + yCoord), distance);
+
+                     _vertices[i + 8] = new Vector3(-x0, ((totalHeight * j) + yCoord + stepHeight), distance);
+                     _vertices[i + 9] = new Vector3(-(x0 - legWidth), ((totalHeight * j)+ yCoord + stepHeight), distance);
+                     _vertices[i + 10] = new Vector3(x0 - legWidth, ((totalHeight * j) + yCoord + stepHeight), distance);
+                     _vertices[i + 11] = new Vector3(x0, ((totalHeight * j) + yCoord + stepHeight), distance);
+
+                     _vertices[i + 12] = new Vector3(-x0, totalHeight * (j + 1), distance);
+                     _vertices[i + 13] = new Vector3(-(x0 - legWidth), totalHeight * (j + 1), distance);
+                     _vertices[i + 14] = new Vector3(x0 - legWidth, totalHeight * (j + 1), distance);
+                     _vertices[i + 15] = new Vector3(x0, totalHeight * (j + 1), distance);
+
+
+                  i += 16;
+             }
+
+            // Adding vertical columns points
+           List<Vector3> _points = new List<Vector3>();
+
+            for (int s = 0; s < steps * 16; s += 16)
+            {
+                for (int k = s; k <= s + 10; k += 2)
+                {
+                    _points.Add(_vertices[k + 0]);
+                    _points.Add(_vertices[k + 1]);
+                    _points.Add(_vertices[k + 4]);
+                    _points.Add(_vertices[k + 5]);
+
+                }
+            }
+            // Adding steps points
+            for (int j = 5; j <= (_vertices.Length - 10); j += 16)
+            {
+                _points.Add(_vertices[j + 0]);
+                _points.Add(_vertices[j + 1]);
+                _points.Add(_vertices[j + 4]);
+                _points.Add(_vertices[j + 5]);
+            }
+           
+
+
+            // Adding backfaces pointss
+            List<Vector3> _backface = new List<Vector3>();
+           for (int m = 0; m < _points.Count; m += 4)
+           {
+               _backface.Add(_points[m + 1] - Vector3.forward * distance);
+               _backface.Add(_points[m + 0] - Vector3.forward * distance);
+               _backface.Add(_points[m + 3] - Vector3.forward * distance);
+               _backface.Add(_points[m + 2] - Vector3.forward * distance);
+           }
+           _points.AddRange(_backface);
+
+            List<Vector3> all_points = new List<Vector3>();
+            all_points.AddRange(_points);
+
+            // external side faces
+
+            all_points.Add(_vertices[0] - Vector3.forward * distance);
+            all_points.Add(_vertices[0]);
+            all_points.Add(_vertices[_vertices.Length - 4] - Vector3.forward * distance);
+            all_points.Add(_vertices[_vertices.Length - 4]);
+
+           
+            all_points.Add(_vertices[1]);
+            all_points.Add(_vertices[1] - Vector3.forward * distance);
+            all_points.Add(_vertices[_vertices.Length - 3]);
+            all_points.Add(_vertices[_vertices.Length - 3] - Vector3.forward * distance);
+
+
+            all_points.Add(_vertices[2] - Vector3.forward * distance);
+            all_points.Add(_vertices[2]);
+            all_points.Add(_vertices[_vertices.Length - 2] - Vector3.forward * distance);
+            all_points.Add(_vertices[_vertices.Length - 2]);
+
+            all_points.Add(_vertices[3]);
+            all_points.Add(_vertices[3] - Vector3.forward * distance);
+            all_points.Add(_vertices[_vertices.Length - 1]);
+            all_points.Add(_vertices[_vertices.Length - 1] - Vector3.forward * distance);
+
+            for (int j = 5; j <= (_vertices.Length - 10); j += 16)
+            {
+                all_points.Add(_vertices[j + 0]);
+                all_points.Add(_vertices[j + 0] - Vector3.forward * distance);
+                all_points.Add(_vertices[j + 1]);
+                all_points.Add(_vertices[j + 1] - Vector3.forward * distance);
+                
+                
+
+                all_points.Add(_vertices[j + 4] - Vector3.forward * distance);
+                all_points.Add(_vertices[j + 4]);
+                all_points.Add(_vertices[j + 5] - Vector3.forward * distance);
+                all_points.Add(_vertices[j + 5]);
+            }
+
+            ProBuilderMesh pb = ProBuilderMesh.CreateInstanceWithPoints(all_points.ToArray());
+            pb.gameObject.name = "Ladder";
+            return pb;
+
+        }
 
 		/// <summary>
 		/// Create a door shape suitable for placement in a wall structure.
@@ -915,6 +1058,8 @@ namespace UnityEngine.ProBuilder
 		{
 			int w = widthCuts+1;
 			int h = heightCuts+1;
+
+ 
 
 			Vector2[] p = new Vector2[ (w*h) * 4 ];
 			Vector3[] v = new Vector3[ (w*h) * 4 ];
@@ -1080,7 +1225,7 @@ namespace UnityEngine.ProBuilder
 			}
 
 			ProBuilderMesh pb = ProBuilderMesh.CreateInstanceWithPoints(v.ToArray());
-
+                                                                                     
 			pb.gameObject.name = "Pipe";
 
 			return pb;
@@ -1104,7 +1249,7 @@ namespace UnityEngine.ProBuilder
 				template[i] = new Vector3(ct.x, 0f, ct.y);
 			}
 
-			List<Vector3> v = new List<Vector3>();
+			List<Vector3> v = new List<Vector3>(); //all the points
 			List<Face> f = new List<Face>();
 
 			// build sides
@@ -1113,7 +1258,7 @@ namespace UnityEngine.ProBuilder
 				// side face
 				v.Add(template[i]);
 				v.Add((i < subdivAxis-1) ? template[i+1] : template[0]);
-				v.Add(Vector3.up * height);
+				v.Add(Vector3.up * height);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
 
 				// bottom face
 				v.Add(template[i]);
@@ -1262,6 +1407,10 @@ namespace UnityEngine.ProBuilder
 			pb.gameObject.name = "Arch";
 			return pb;
 		}
+
+
+  
+        
 
 		/// <summary>
 		/// Create a new icosphere shape.

@@ -27,6 +27,7 @@ namespace UnityEditor.ProBuilder
 			Arch,
 			Icosahedron,
 			Torus,
+            Ladder,
 			Custom
 		}
 
@@ -210,9 +211,13 @@ namespace UnityEditor.ProBuilder
 				case ShapeType.Torus:
 					TorusGUI();
 					break;
+                case ShapeType.Ladder:
+                    LadderGUI();
+                    break;
 				case ShapeType.Custom:
 					CustomGUI();
 					break;
+                
 
 				default:
 					EditorGUILayout.EndScrollView();
@@ -364,6 +369,8 @@ namespace UnityEditor.ProBuilder
 
 			GUI.backgroundColor = oldColor;
 		}
+
+        
 
 		/**** Stair Generator ***/
 		static int stair_steps = 6;
@@ -531,8 +538,71 @@ namespace UnityEditor.ProBuilder
 			GUI.backgroundColor = oldColor;
 		}
 
-		/**** Door Generator ***/
-		static float door_totalWidth  = 4.0f;
+        /****** Ladder Generator ***/
+
+        static float ladder_totalHeight = 2f;
+        static float ladder_stepHeight = 0.5f;
+        static float ladder_totalWidth = 2.5f;
+        static float ladder_stepWidth = 1.5f;
+        static float ladder_distance = 0.5f;
+        static int ladder_steps = 2;
+
+        void LadderGUI()
+        {
+            ladder_totalHeight = EditorGUILayout.FloatField("Total Height", ladder_totalHeight);
+            ladder_totalHeight = Mathf.Clamp(ladder_totalHeight, 0.3f, 200.0f);
+
+            ladder_stepHeight = EditorGUILayout.FloatField("Step Height", ladder_stepHeight);
+            ladder_stepHeight = Mathf.Clamp(ladder_stepHeight, 0.1f, ladder_totalHeight - 0.2f);
+
+            ladder_totalWidth = EditorGUILayout.FloatField("Total Width", ladder_totalWidth);
+             ladder_totalWidth = Mathf.Clamp(ladder_totalWidth, 0.3f, 200.0f);
+
+            ladder_stepWidth = EditorGUILayout.FloatField("Step Width", ladder_stepWidth);
+            ladder_stepWidth = Mathf.Clamp(ladder_stepWidth, 0.2f, ladder_totalWidth - 0.2f);
+
+            ladder_distance = EditorGUILayout.FloatField("Depth", ladder_distance);
+            ladder_distance = Mathf.Clamp(ladder_distance, 0f, 200.0f);
+
+            ladder_steps = (int)Mathf.Max(UI.EditorGUIUtility.FreeSlider("Steps", ladder_steps, 1, 200), 1);
+
+            if (m_ShowPreview && (GUI.changed || m_DoInitPreview))
+                SetPreviewObject(ShapeGenerator.LadderGenerator(ladder_steps,ladder_totalHeight, ladder_totalWidth, ladder_stepHeight, ladder_stepWidth, ladder_distance));
+
+            Color oldColor = GUI.backgroundColor;
+            GUI.backgroundColor = k_ColorGreen;
+
+            EditorGUILayout.EndScrollView();
+
+            if (GUILayout.Button("Build " + m_CurrentShape, GUILayout.MinHeight(28)))
+            {
+                ProBuilderMesh pb = ShapeGenerator.LadderGenerator(ladder_steps,ladder_totalHeight, ladder_totalWidth, ladder_stepHeight, ladder_stepWidth, ladder_distance);
+                UndoUtility.RegisterCreatedObjectUndo(pb.gameObject, "Create Shape");
+
+                if (m_DefaultMaterial) SetFaceMaterial(pb.facesInternal, m_DefaultMaterial);
+
+                EditorUtility.SetPivotAndSnapWithPref(pb, null);
+                EditorUtility.InitObject(pb);
+
+                AlignWithPreviewObject(pb.gameObject);
+                DestroyPreviewObject();
+                m_ShowPreview = false;
+
+                if (prefClose)
+                {
+                    this.Close();
+                }
+            }
+
+            GUI.backgroundColor = oldColor;
+
+        }
+
+
+
+
+        /**** Door Generator ***/
+        static float door_totalWidth  = 4.0f;
 		static float door_totalHeight = 4.0f;
 		static float door_ledgeHeight = 1.0f;
 		static float door_legWidth	  = 1.0f;
