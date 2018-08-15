@@ -543,34 +543,57 @@ namespace UnityEditor.ProBuilder
         static float ladder_stepThickness = 0.15f;
         static float ladder_totalWidth = 2.2f;
         static float ladder_legWidth = 0.3f;
-        static float ladder_distance = 0.5f;
-        static int ladder_steps = 2;
+        static float ladder_stepDistance = 0.5f;
+        static int  ladder_steps = 1;
+        static float ladder_distance = 0.1f;
         static float ladder_degree = 0;
+        static bool ladder_endCaps = true;
+        static bool ladder_totalHeightToggle = true;
+        static bool ladder_stepsNumberToggle = false;
+        
 
         void LadderGUI()
         {
-            ladder_totalHeight = EditorGUILayout.FloatField("Total Height", ladder_totalHeight);
-            ladder_totalHeight = Mathf.Clamp(ladder_totalHeight, 0.01f, 200.0f);
+            
 
             ladder_stepThickness = EditorGUILayout.FloatField("Step Thickness", ladder_stepThickness);
-            ladder_stepThickness = Mathf.Clamp(ladder_stepThickness, 0.01f, (ladder_totalHeight / ladder_steps));
+            ladder_stepThickness = Mathf.Clamp(ladder_stepThickness, 0.01f, 100);
 
             ladder_totalWidth = EditorGUILayout.FloatField("Total Width", ladder_totalWidth);
-            ladder_totalWidth = Mathf.Clamp(ladder_totalWidth, 0.01f, 200.0f);
+            ladder_totalWidth = Mathf.Clamp(ladder_totalWidth, 0.01f, Mathf.Infinity);
 
             ladder_legWidth = EditorGUILayout.FloatField("Legs Width", ladder_legWidth);
             ladder_legWidth = Mathf.Clamp(ladder_legWidth, 0.01f, ladder_totalWidth * 0.5f);
 
             ladder_distance = EditorGUILayout.FloatField("Depth", ladder_distance);
-            ladder_distance = Mathf.Clamp(ladder_distance, 0f, 200.0f);
+            ladder_distance = Mathf.Clamp(ladder_distance, 0f, Mathf.Infinity);
 
             ladder_steps = EditorGUILayout.IntField("Steps", ladder_steps);
             ladder_steps = Mathf.Clamp(ladder_steps, 1, 200);
 
             ladder_degree = (float)Mathf.Max(UI.EditorGUIUtility.FreeSlider("Rotation", ladder_degree, -70, 70));
+            ladder_degree = Mathf.Clamp(ladder_degree, -70, 70);
+
+            ladder_endCaps = EditorGUILayout.Toggle("End Caps", ladder_endCaps);
+
+            ladder_totalHeightToggle = EditorGUILayout.Toggle("Set the Total Height of the Ladder", !ladder_stepsNumberToggle);
+
+            EditorGUI.BeginDisabledGroup(!ladder_totalHeightToggle);
+            ladder_totalHeight = EditorGUILayout.FloatField("Total Height", ladder_totalHeight);
+            ladder_totalHeight = Mathf.Clamp(ladder_totalHeight, 0.01f, Mathf.Infinity);
+            EditorGUI.EndDisabledGroup();
+
+
+           ladder_stepsNumberToggle = EditorGUILayout.Toggle("Set the Distance Between Steps", !ladder_totalHeightToggle);
+
+            EditorGUI.BeginDisabledGroup(!ladder_stepsNumberToggle);
+            ladder_stepDistance = EditorGUILayout.FloatField("Distance Between Steps", ladder_stepDistance);
+            ladder_stepDistance = Mathf.Clamp(ladder_stepDistance, 0.1f, 200);
+            EditorGUI.EndDisabledGroup();
+
 
             if (m_ShowPreview && (GUI.changed || m_DoInitPreview))
-                SetPreviewObject(ShapeGenerator.LadderGenerator(ladder_degree, ladder_steps, ladder_totalHeight, ladder_totalWidth, ladder_stepThickness, ladder_legWidth, ladder_distance));
+                SetPreviewObject(ShapeGenerator.LadderGenerator(ladder_degree, ladder_steps, ladder_stepDistance, ladder_totalHeight, ladder_totalWidth, ladder_stepThickness, ladder_legWidth, ladder_distance, ladder_endCaps, ladder_totalHeightToggle));
 
             Color oldColor = GUI.backgroundColor;
             GUI.backgroundColor = k_ColorGreen;
@@ -579,7 +602,7 @@ namespace UnityEditor.ProBuilder
 
             if (GUILayout.Button("Build " + m_CurrentShape, GUILayout.MinHeight(28)))
             {
-                ProBuilderMesh pb = ShapeGenerator.LadderGenerator(ladder_degree, ladder_steps, ladder_totalHeight, ladder_totalWidth, ladder_stepThickness, ladder_legWidth, ladder_distance);
+                ProBuilderMesh pb = ShapeGenerator.LadderGenerator(ladder_degree, ladder_steps, ladder_stepDistance, ladder_totalHeight, ladder_totalWidth, ladder_stepThickness, ladder_legWidth, ladder_distance, ladder_endCaps, ladder_totalHeightToggle);
                 UndoUtility.RegisterCreatedObjectUndo(pb.gameObject, "Create Shape");
 
                 if (m_DefaultMaterial) SetFaceMaterial(pb.facesInternal, m_DefaultMaterial);
@@ -600,8 +623,6 @@ namespace UnityEditor.ProBuilder
             GUI.backgroundColor = oldColor;
 
         }
-
-
 
         /**** Door Generator ***/
         static float door_totalWidth  = 4.0f;
