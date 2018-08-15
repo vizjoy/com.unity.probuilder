@@ -185,7 +185,7 @@ namespace UnityEngine.ProBuilder
 			if (shape == ShapeType.Torus)
 				pb = TorusGenerator(12, 16, 1f, .3f, true, 360f, 360f);
             if (shape == ShapeType.Ladder)
-                pb = LadderGenerator(0f,2,3f, 3f, 1f, 2f, 0.5f);
+                pb = LadderGenerator(0f,1, 2f,3f, 3f, 1f, 2f, 0.5f, false, false);
 			if (pb == null)
 			{
 #if DEBUG
@@ -828,71 +828,94 @@ namespace UnityEngine.ProBuilder
         /// <param name="depth">The distance between the front and back faces of the ladder</param>
         /// <returns>A new GameObject with a reference to the ProBuilderMesh component.</returns>
         /// 
-        public static ProBuilderMesh LadderGenerator(float degree, int steps, float totalHeight, float totalWidth, float thickness, float legWidth, float depth)
+        public static ProBuilderMesh LadderGenerator(float degree, int steps, float unit, float totalHeight, float totalWidth, float thickness, float legWidth, float depth, bool endCaps, bool toggle)
         {
+            // It's always required to create the first step at least (step = 1), we need 16 vertices for this purpose, the latest vertices' y values should
+            // be a constant values, as we don't want changing the thickness of the ladder affects on the totalheghigh, so crownHeight = totalHeight;
+            // if ladder has more than 1 step, the latest vertices doesn't need to be set to a constant value, steps are presenting with X:
 
-             var deg = Mathf.Tan(degree * Mathf.Deg2Rad) * (depth/2); //Degree for step rotation
-           
-            //var deg = Mathf.Tan(degree * Mathf.Deg2Rad) * (depth / 2) - (thickness / 2);
-
-            Vector3 offset = new Vector3(0f, deg, 0f); // offset to add to each step position while rotating
-            float unit = (totalHeight - (steps) * thickness) / (steps + 1); // units are those squares which don't have a step like 3--7
-
-            float crownHeight; // highest points for the first step
-            float highestVertex; // highets points for the last step
-
-            // 12--13--14--15
+            // 12  13  14  15
             // |   |   |   |
             // 8---9---10--11
-            // |   |   |   |
+            // | X | X | X |
             // 4---5---6---7
             // |   |   |   |
             // 0   1   2   3
 
+            //Same rules apply to the next vertices, the only difference here is that we only need 8 extra vertices for each step:
+
+            // 20  21  22  23
+            // |   |   |   | 
+            //`16--17--18--19
+            // | X | X | X |
+            // 12--13--14--15
+            // |   |   |   |
+            // 8---9---10--11
+            // | X | X | X |
+            // 4---5---6---7
+            // |   |   |   |
+            // 0   1   2   3
+
+            var deg = Mathf.Tan(degree * Mathf.Deg2Rad) * (depth * 0.5f); //Degree for step rotation
+            Vector3 offset = new Vector3(0f, deg, 0f);  // offset to add to each step position while rotating
+
+            // units are those squares which don't have a step like 3--7, we have : totalHeight = unit*(steps+1) + thickness * steps
+            // this works only in case that we have number of our steps and total height
+            float _unit = (totalHeight - (steps * thickness)) / (steps + 1);
+
+            // this works only in case that we have the distance between each step and number of steps
+            float _totalheight = unit * (steps + 1) + thickness * steps;
+
+            if (toggle)
+            {
+                unit = _unit;
+            }
+            else
+            {
+                totalHeight = _totalheight;
+            }
+
+            float crownHeight; // highest points for the first step
+            float highestVertex; // highets points for the last step
             const int FIRST_VERTICES = 16; // first step
             const int MIDDLE_VERTICES = 8;// other steps
-
-
-            Vector3[] _vertices = new Vector3[FIRST_VERTICES + (steps - 1) * MIDDLE_VERTICES]; // all the vertices
-            List<Vector3> all_points = new List<Vector3>(); //all the required points
+            Vector3[] stepTemplate = new Vector3[FIRST_VERTICES + (steps - 1) * MIDDLE_VERTICES]; // all the vertices
+            List<Vector3> points = new List<Vector3>(); // all the required points
 
             //Initializing first step
+            stepTemplate[0] = new Vector3(0, 0, depth);                       // 0
+            stepTemplate[1] = new Vector3(legWidth, 0, depth);                    // 1
+            stepTemplate[2] = new Vector3(totalWidth - legWidth, 0, depth);                       // 2
+            stepTemplate[3] = new Vector3(totalWidth, 0, depth);                      // 3
 
-            _vertices[0] = new Vector3(0, 0, depth);                       // 0
-            _vertices[1] = new Vector3(legWidth, 0, depth);                    // 1
-            _vertices[2] = new Vector3(totalWidth - legWidth, 0, depth);                       // 2
-            _vertices[3] = new Vector3(totalWidth, 0, depth);                      // 3
+            stepTemplate[4] = new Vector3(0, unit, depth);                // 4
+            stepTemplate[5] = new Vector3(legWidth, unit, depth);                // 5
+            stepTemplate[6] = new Vector3(totalWidth - legWidth, unit, depth);                 // 6
+            stepTemplate[7] = new Vector3(totalWidth, unit, depth);                 // 7
 
-            _vertices[4] = new Vector3(0, unit, depth);                // 4
-            _vertices[5] = new Vector3(legWidth, unit, depth);                // 5
-            _vertices[6] = new Vector3(totalWidth - legWidth, unit, depth);                 // 6
-            _vertices[7] = new Vector3(totalWidth, unit, depth);                 // 7
-
-            _vertices[8] = new Vector3(0, ((unit + thickness)), depth);              // 8
-            _vertices[9] = new Vector3(legWidth, ((unit + thickness)), depth);               // 9
-            _vertices[10] = new Vector3(totalWidth - legWidth, ((unit + thickness)), depth);            // 10
-            _vertices[11] = new Vector3(totalWidth, ((unit + thickness)), depth); //11
+            stepTemplate[8] = new Vector3(0, unit + thickness, depth);              // 8
+            stepTemplate[9] = new Vector3(legWidth, unit + thickness, depth);               // 9
+            stepTemplate[10] = new Vector3(totalWidth - legWidth, unit + thickness, depth);            // 10
+            stepTemplate[11] = new Vector3(totalWidth, unit + thickness, depth); //11
 
             if (steps == 1)
             {
                 crownHeight = totalHeight;
-
             }
             else
             {
+                //since fisrt step cointans of 2 square units and one thickness unit (for each leg) then we have: 
                 crownHeight = 2 * unit + thickness;
             }
-            _vertices[12] = new Vector3(0, ((crownHeight)), depth);              // 8
-            _vertices[13] = new Vector3(legWidth, ((crownHeight)), depth);               // 9
-            _vertices[14] = new Vector3(totalWidth - legWidth, ((crownHeight)), depth);            // 10
-            _vertices[15] = new Vector3(totalWidth, ((crownHeight)), depth); //11
-            
-            //Initializing middle steps 
+            stepTemplate[12] = new Vector3(0, crownHeight, depth);              // 12
+            stepTemplate[13] = new Vector3(legWidth, crownHeight, depth);               // 13
+            stepTemplate[14] = new Vector3(totalWidth - legWidth, crownHeight, depth);            // 14
+            stepTemplate[15] = new Vector3(totalWidth, crownHeight, depth); //15
 
-            int i = 8;
+            //Initializing next steps if step >1
+            int i = MIDDLE_VERTICES;
             for (int j = 1; j < steps; j++)
             {
-
                 if (j == steps - 1)
                 {
                     highestVertex = totalHeight;
@@ -901,96 +924,110 @@ namespace UnityEngine.ProBuilder
                 {
                     highestVertex = crownHeight + thickness * j + unit * j;
                 }
-                _vertices[i + 8] = new Vector3(0, (crownHeight + thickness * j + unit * (j - 1)), depth);                // 12
-                _vertices[i + 9] = new Vector3(legWidth, (crownHeight + thickness * j + unit * (j - 1)), depth);                // 13
-                _vertices[i + 10] = new Vector3(totalWidth - legWidth, (crownHeight + thickness * j + unit * (j - 1)), depth);	               // 14
-                _vertices[i + 11] = new Vector3(totalWidth, (crownHeight + thickness * j + unit * (j - 1)), depth);                 // 15
+                stepTemplate[i + 8] = new Vector3(0, crownHeight + thickness * j + unit * (j - 1), depth);                // 16
+                stepTemplate[i + 9] = new Vector3(legWidth, crownHeight + thickness * j + unit * (j - 1), depth);                // 17
+                stepTemplate[i + 10] = new Vector3(totalWidth - legWidth, crownHeight + thickness * j + unit * (j - 1), depth);	               // 18
+                stepTemplate[i + 11] = new Vector3(totalWidth, crownHeight + thickness * j + unit * (j - 1), depth);                 // 19
 
-                _vertices[i + 12] = new Vector3(0, (highestVertex), depth);              // 16
-                _vertices[i + 13] = new Vector3(legWidth, (highestVertex), depth);               // 17
-                _vertices[i + 14] = new Vector3(totalWidth - legWidth, (highestVertex), depth);	           // 18
-                _vertices[i + 15] = new Vector3(totalWidth, (highestVertex), depth);	           // 19
+                stepTemplate[i + 12] = new Vector3(0, highestVertex, depth);              // 20
+                stepTemplate[i + 13] = new Vector3(legWidth, highestVertex, depth);               // 21
+                stepTemplate[i + 14] = new Vector3(totalWidth - legWidth, highestVertex, depth);	           // 22
+                stepTemplate[i + 15] = new Vector3(totalWidth, highestVertex, depth);	           // 23
 
                 i += MIDDLE_VERTICES;
             }
 
-           
-            List<Vector3> _points = new List<Vector3>();
+            //Adding points
             int total_vertices = FIRST_VERTICES + (steps - 1) * MIDDLE_VERTICES;
-
-            for (int k = 0; k <= total_vertices - 5; k += 2)
+            //since we are initializing 4 points each time in this loop, then the counter should stop when it reaches "total_vertices - 4"
+            for (int k = 0; k < total_vertices - 4; k += 2)
             {
-                _points.Add(_vertices[k + 0] - offset);
-                _points.Add(_vertices[k + 1] - offset);
-                _points.Add(_vertices[k + 4] - offset);
-                _points.Add(_vertices[k + 5] - offset);
-
+                points.Add(stepTemplate[k + 0] - offset);
+                points.Add(stepTemplate[k + 1] - offset);
+                points.Add(stepTemplate[k + 4] - offset);
+                points.Add(stepTemplate[k + 5] - offset);
             }
+
             // Adding backfaces points for what we have so far
-
-            List<Vector3> _backface = new List<Vector3>();
-            for (int s = 0; s < _points.Count; s += 4)
+            List<Vector3> backface = new List<Vector3>(points.Count);
+            for (int s = 0; s < points.Count; s += 4)
             {
-                _backface.Add(_points[s + 1] - Vector3.forward * depth + 2* offset);
-                _backface.Add(_points[s + 0] - Vector3.forward * depth + 2 * offset);
-                _backface.Add(_points[s + 3] - Vector3.forward * depth + 2 * offset);
-                _backface.Add(_points[s + 2] - Vector3.forward * depth + 2 * offset);
+                backface.Add(points[s + 1] - Vector3.forward * depth + 2 * offset);
+                backface.Add(points[s + 0] - Vector3.forward * depth + 2 * offset);
+                backface.Add(points[s + 3] - Vector3.forward * depth + 2 * offset);
+                backface.Add(points[s + 2] - Vector3.forward * depth + 2 * offset);
             }
 
-            //side walls
-            for (int k = 0; k <= total_vertices - 5; k += 2)
+            //Points for side walls
+            for (int k = 0; k < total_vertices - 4; k += 2)
             {
-                _points.Add(_vertices[k + 0] - Vector3.forward * depth + offset);
-                _points.Add(_vertices[k + 0] - offset);
-                _points.Add(_vertices[k + 4] - Vector3.forward * depth + offset);
-                _points.Add(_vertices[k + 4] - offset);
+                points.Add(stepTemplate[k + 0] - Vector3.forward * depth + offset);
+                points.Add(stepTemplate[k + 0] - offset);
+                points.Add(stepTemplate[k + 4] - Vector3.forward * depth + offset);
+                points.Add(stepTemplate[k + 4] - offset);
 
-                _points.Add(_vertices[k + 1] - offset);
-                _points.Add(_vertices[k + 1] - Vector3.forward * depth + offset);
-                _points.Add(_vertices[k + 5] - offset);
-                _points.Add(_vertices[k + 5] - Vector3.forward * depth + offset);
+                points.Add(stepTemplate[k + 1] - offset);
+                points.Add(stepTemplate[k + 1] - Vector3.forward * depth + offset);
+                points.Add(stepTemplate[k + 5] - offset);
+                points.Add(stepTemplate[k + 5] - Vector3.forward * depth + offset);
             }
 
             // creating points for horizontal stairs
-            for (int j = 5; j <= total_vertices - 5; j += MIDDLE_VERTICES)
+            for (int j = 5; j < total_vertices - 4; j += MIDDLE_VERTICES)
             {
-                _points.Add(_vertices[j + 0] - offset);
-                _points.Add(_vertices[j + 1] - offset);
-                _points.Add(_vertices[j + 4] - offset);
-                _points.Add(_vertices[j + 5] - offset);
-
-                _points.Add(_vertices[j + 0] - offset);
-                _points.Add(_vertices[j + 0] - Vector3.forward * depth + offset);
-                _points.Add(_vertices[j + 1] - offset);
-                _points.Add(_vertices[j + 1] - Vector3.forward * depth + offset);
-
-                _points.Add(_vertices[j + 4] - Vector3.forward * depth + offset);
-                _points.Add(_vertices[j + 4] - offset);
-                _points.Add(_vertices[j + 5] - Vector3.forward * depth + offset);
-                _points.Add(_vertices[j + 5] - offset);
-
-                _points.Add(_vertices[j + 1] - Vector3.forward * depth + offset);
-                _points.Add(_vertices[j + 0] - Vector3.forward * depth + offset);
-                _points.Add(_vertices[j + 5] - Vector3.forward * depth + offset);
-                _points.Add(_vertices[j + 4] - Vector3.forward * depth + offset);
+                //front faces
+                points.Add(stepTemplate[j + 0] - offset);
+                points.Add(stepTemplate[j + 1] - offset);
+                points.Add(stepTemplate[j + 4] - offset);
+                points.Add(stepTemplate[j + 5] - offset);
+                //bottom faces
+                points.Add(stepTemplate[j + 0] - offset);
+                points.Add(stepTemplate[j + 0] - Vector3.forward * depth + offset);
+                points.Add(stepTemplate[j + 1] - offset);
+                points.Add(stepTemplate[j + 1] - Vector3.forward * depth + offset);
+                // upper faces
+                points.Add(stepTemplate[j + 4] - Vector3.forward * depth + offset);
+                points.Add(stepTemplate[j + 4] - offset);
+                points.Add(stepTemplate[j + 5] - Vector3.forward * depth + offset);
+                points.Add(stepTemplate[j + 5] - offset);
+                //back faces
+                points.Add(stepTemplate[j + 1] - Vector3.forward * depth + offset);
+                points.Add(stepTemplate[j + 0] - Vector3.forward * depth + offset);
+                points.Add(stepTemplate[j + 5] - Vector3.forward * depth + offset);
+                points.Add(stepTemplate[j + 4] - Vector3.forward * depth + offset);
             }
 
-            all_points.AddRange(_points);
-            all_points.AddRange(_backface);
-
-        //Rotate the ladder
-   
-            Matrix4x4 m = Matrix4x4.TRS(Vector3.zero, Quaternion.Euler(- degree, 0, 0), Vector3.one);
-            for (int q = 0; q < all_points.Count; q++)
+            //adding end caps
+            if (endCaps)
             {
-                all_points[q] = m.MultiplyPoint3x4(all_points[q]);
+                for (int j = 0; j <= 2; j += 2)
+                {   
+                    //botoom end caps
+                    points.Add(stepTemplate[0 + j] - Vector3.forward * depth + offset);
+                    points.Add(stepTemplate[1 + j] - Vector3.forward * depth + offset);
+                    points.Add(stepTemplate[0 + j] - offset);
+                    points.Add(stepTemplate[1 + j] - offset);
+
+                    // Upper end caps
+                    points.Add(stepTemplate[stepTemplate.Length - 4 + j] - offset);
+                    points.Add(stepTemplate[stepTemplate.Length - 3 + j] - offset);
+                    points.Add(stepTemplate[stepTemplate.Length - 4 + j] - Vector3.forward * depth + offset);
+                    points.Add(stepTemplate[stepTemplate.Length - 3 + j] - Vector3.forward * depth + offset);
+
+                }
             }
-   
-            ProBuilderMesh pb = ProBuilderMesh.CreateInstanceWithPoints(all_points.ToArray());
-           
+            points.AddRange(backface);
+
+            //Rotate the ladder
+            Matrix4x4 m = Matrix4x4.TRS(Vector3.zero, Quaternion.Euler(-degree, 0, 0), Vector3.one);
+            for (int q = 0; q < points.Count; q++)
+            {
+                points[q] = m.MultiplyPoint3x4(points[q]);
+            }
+
+            ProBuilderMesh pb = ProBuilderMesh.CreateInstanceWithPoints(points.ToArray());
             pb.gameObject.name = "Ladder";
             return pb;
-
         }
 
         /// <summary>
