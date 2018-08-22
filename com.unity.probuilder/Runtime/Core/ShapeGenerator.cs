@@ -1495,6 +1495,10 @@ namespace UnityEngine.ProBuilder
   
         
 
+
+  
+        
+
 		/// <summary>
 		/// Create a new icosphere shape.
 		/// </summary>
