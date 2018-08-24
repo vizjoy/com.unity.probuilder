@@ -121,6 +121,10 @@ namespace UnityEditor.ProBuilder
 				SetFaceMaterial(pb.facesInternal, mat);
 				pb.GetComponent<MeshRenderer>().sharedMaterial = mat;
 			}
+			else
+			{
+				Log.Error("Default material is missing. Please re-import ProBuilder to fix.");
+			}
 
 			EditorUtility.InitObject(pb);
 			EditorUtility.SetPivotAndSnapWithPref(pb, null);
