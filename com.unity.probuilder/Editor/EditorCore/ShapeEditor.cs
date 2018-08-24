@@ -123,7 +123,7 @@ namespace UnityEditor.ProBuilder
 			}
 			else
 			{
-				Debug.Log("mat is null");
+				Log.Error("Default material is missing. Please re-import ProBuilder to fix.");
 			}
 
 			EditorUtility.InitObject(pb);

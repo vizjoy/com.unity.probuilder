@@ -76,6 +76,19 @@ namespace UnityEngine.ProBuilder
 		}
 
 		/// <summary>
+		/// Create a new GameObject with a ProBuilderMesh component, MeshFilter, and MeshRenderer, then initializes the ProBuilderMesh with no elements.
+		/// </summary>
+		/// <returns>A new ProBuilderMesh component.</returns>
+		public static ProBuilderMesh Create()
+		{
+			GameObject go = new GameObject();
+			var mesh = go.AddComponent<ProBuilderMesh>();
+			go.name = "ProBuilder Mesh";
+			mesh.Clear();
+			return mesh;
+		}
+
+		/// <summary>
 		/// Create a new GameObject with a ProBuilderMesh component, MeshFilter, and MeshRenderer, then initializes the ProBuilderMesh with a set of positions and faces.
 		/// </summary>
 		/// <param name="positions">Vertex positions array.</param>

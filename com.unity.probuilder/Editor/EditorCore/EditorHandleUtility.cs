@@ -521,5 +521,75 @@ namespace UnityEditor.ProBuilder
 
 			return trs != null ? trs.InverseTransformPoint(p) : p;
 		}
+
+		internal static bool GetPlane(Vector2 mousePosition, out Plane plane)
+		{
+			GameObject go = null;
+			var s_IgnorePick = new List<GameObject>();
+
+			do
+			{
+				if (go != null)
+					s_IgnorePick.Add(go);
+
+				go = HandleUtility.PickGameObject(mousePosition, false, s_IgnorePick.ToArray());
+			} while (go != null && go.GetComponent<MeshFilter>() == null);
+
+			if (go != null)
+			{
+				Mesh m = go.GetComponent<MeshFilter>().sharedMesh;
+
+				if (m != null)
+				{
+					RaycastHit hit;
+
+					if (UnityEngine.ProBuilder.HandleUtility.WorldRaycast(HandleUtility.GUIPointToWorldRay(mousePosition),
+						go.transform,
+						m.vertices,
+						m.triangles,
+						out hit))
+					{
+						plane = new Plane(
+							go.transform.TransformDirection(hit.normal).normalized,
+							go.transform.TransformPoint(hit.point));
+
+						return true;
+					}
+				}
+			}
+
+			// No mesh in the way, set the plane based on camera
+			SceneView sceneView = SceneView.lastActiveSceneView;
+			float cam_x = Vector3.Dot(sceneView.camera.transform.forward, Vector3.right);
+			float cam_y = Vector3.Dot(sceneView.camera.transform.position - sceneView.pivot.normalized, Vector3.up);
+			float cam_z = Vector3.Dot(sceneView.camera.transform.forward, Vector3.forward);
+
+			ProjectionAxis axis = ProjectionAxis.Y;
+
+			if (Mathf.Abs(cam_x) > .98f)
+				axis = ProjectionAxis.X;
+			else if (Mathf.Abs(cam_z) > .98f)
+				axis = ProjectionAxis.Z;
+
+			switch (axis)
+			{
+				case ProjectionAxis.X:
+					plane = new Plane(new Vector3(Mathf.Sign(cam_x), 0f, 0f), Vector3.zero);
+					return false;
+
+				case ProjectionAxis.Y:
+					plane = new Plane(new Vector3(0f, Mathf.Sign(cam_y), 0f), Vector3.zero);
+					return false;
+
+				case ProjectionAxis.Z:
+					plane = new Plane(new Vector3(0f, 0f, Mathf.Sign(cam_z)), Vector3.zero);
+					return false;
+
+				default:
+					plane = new Plane(Vector3.up, Vector3.zero);
+					return false;
+			}
+		}
+
 	}
 }
