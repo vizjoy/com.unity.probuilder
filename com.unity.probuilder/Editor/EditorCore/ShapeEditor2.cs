@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEditor;
 using System.Collections;
 using System.Collections.Generic;
@@ -24,7 +24,7 @@ namespace UnityEditor.ProBuilder
 
 		const float k_MinBoundingBoxSize = .01f;
 		static readonly Rect k_SettingsWindowDragRect = new Rect(0f, 0f, 1000f, 20f);
-		Rect m_SettingsRect = new Rect(4, 18, 200, 100);
+		Rect m_SettingsRect = new Rect(4, 18, 350, 100);
 		EditState m_EditState = EditState.None;
 		Plane m_Plane;
 		float m_ExtrusionOffset;
@@ -174,7 +174,7 @@ namespace UnityEditor.ProBuilder
 		{
 			float nearest = Mathf.Infinity;
 
-			foreach (var dir in bounds.corners)
+			foreach (var dir in bounds.localCorners)
 			{
 				float distance;
 
@@ -351,7 +351,7 @@ namespace UnityEditor.ProBuilder
 
 			using (new Handles.DrawingScope(Handles.selectedColor, Matrix4x4.TRS(bb.center, bb.rotation, Vector3.one)))
 			{
-				var corners = bb.corners;
+				var corners = bb.localCorners;
 				const float length = .15f;
 
 				DrawCorner(corners[0], corners[1], corners[2], corners[4], length);

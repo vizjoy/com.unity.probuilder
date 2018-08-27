@@ -40,7 +40,7 @@ namespace UnityEngine.ProBuilder
             set { m_Extents = value * .5f; }
         }
 
-        public Vector3[] corners
+        public Vector3[] localCorners
         {
             get
             {
@@ -64,13 +64,14 @@ namespace UnityEngine.ProBuilder
         internal bool IntersectRay(Vector3 origin, Vector3 direction, out float distance)
         {
             float dist = Mathf.Infinity, best = dist;
+            direction.Normalize();
 
-            Vector3 up = (rotation * Vector3.up).normalized;
-            Vector3 down = (rotation * Vector3.down).normalized;
-            Vector3 right = (rotation * Vector3.right).normalized;
-            Vector3 left = (rotation * Vector3.left).normalized;
-            Vector3 forward = (rotation * Vector3.forward).normalized;
-            Vector3 back = (rotation * Vector3.back).normalized;
+            Vector3 up = (rotation * Vector3.up); up.Normalize();
+            Vector3 down = (rotation * Vector3.down); down.Normalize();
+            Vector3 right = (rotation * Vector3.right); right.Normalize();
+            Vector3 left = (rotation * Vector3.left); left.Normalize();
+            Vector3 forward = (rotation * Vector3.forward); forward.Normalize();
+            Vector3 back = (rotation * Vector3.back); back.Normalize();
 
             if (Math.RayIntersectsPlane(origin, direction, center + (up * extents.y), up, out dist))
                 best = Mathf.Min(best, dist);
