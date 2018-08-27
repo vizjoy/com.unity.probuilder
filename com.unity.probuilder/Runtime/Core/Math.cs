@@ -804,6 +804,21 @@ namespace UnityEngine.ProBuilder
 					(1f - Mathf.Abs(Vector3.Dot(Vector3.right, v))) < epsilon;
 		}
 
+		internal static Axis DirectionToAxis(Vector3 dir)
+		{
+			float x = System.Math.Abs(dir.x);
+			float y = System.Math.Abs(dir.y);
+			float z = System.Math.Abs(dir.z);
+
+			if(x > y && x > z)
+				return dir.x > 0 ? Axis.Right : Axis.Left;
+
+			if(y > z)
+				return dir.y > 0 ? Axis.Up : Axis.Down;
+
+			return dir.z > 0 ? Axis.Forward : Axis.Backward;
+		}
+
 		/// <summary>
 		/// Component-wise division.
 		/// </summary>

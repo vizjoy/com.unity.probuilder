@@ -1744,7 +1744,8 @@ namespace UnityEditor.ProBuilder
 			catch
 			{
 				// happens on undo when c++ object is gone but c# isn't in the know
-				m_EditorMeshHandles.ClearHandles();
+				if(m_EditorMeshHandles != null)
+					m_EditorMeshHandles.ClearHandles();
 			}
 		}
 
