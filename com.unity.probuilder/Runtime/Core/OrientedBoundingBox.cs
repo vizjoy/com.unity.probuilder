@@ -61,5 +61,43 @@ namespace UnityEngine.ProBuilder
             }
         }
 
+        internal bool IntersectRay(Vector3 origin, Vector3 direction, out float distance)
+        {
+            float dist = Mathf.Infinity, best = dist;
+
+            Vector3 up = (rotation * Vector3.up).normalized;
+            Vector3 down = (rotation * Vector3.down).normalized;
+            Vector3 right = (rotation * Vector3.right).normalized;
+            Vector3 left = (rotation * Vector3.left).normalized;
+            Vector3 forward = (rotation * Vector3.forward).normalized;
+            Vector3 back = (rotation * Vector3.back).normalized;
+
+            if (Math.RayIntersectsPlane(origin, direction, center + (up * extents.y), up, out dist))
+                best = Mathf.Min(best, dist);
+
+            if (Math.RayIntersectsPlane(origin, direction, center + (down * extents.y), down, out dist))
+                best = Mathf.Min(best, dist);
+
+            if (Math.RayIntersectsPlane(origin, direction, center + (right * extents.x), right, out dist))
+                best = Mathf.Min(best, dist);
+
+            if (Math.RayIntersectsPlane(origin, direction, center + (left * extents.x), left, out dist))
+                best = Mathf.Min(best, dist);
+
+            if (Math.RayIntersectsPlane(origin, direction, center + (forward * extents.z), forward, out dist))
+                best = Mathf.Min(best, dist);
+
+            if (Math.RayIntersectsPlane(origin, direction, center + (back * extents.z), back, out dist))
+                best = Mathf.Min(best, dist);
+
+            if (dist < Mathf.Infinity)
+            {
+                distance = best;
+                return true;
+            }
+
+            distance = 0f;
+            return false;
+        }
     }
 }

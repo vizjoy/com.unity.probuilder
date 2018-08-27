@@ -555,6 +555,25 @@ namespace UnityEngine.ProBuilder
 			return true;
 		}
 
+		internal static bool RayIntersectsPlane(Vector3 rayOrigin, Vector3 rayDirection, Vector3 planeOrigin, Vector3 planeNormal, out float distance)
+		{
+			float denom = Vector3.Dot(planeNormal, rayDirection);
+
+			if (Mathf.Abs(denom) > Mathf.Epsilon)
+			{
+				float t = Vector3.Dot(planeOrigin - rayOrigin, planeNormal) / denom;
+
+				if (t >= 0)
+				{
+					distance = t;
+					return true;
+				}
+			}
+
+			distance = 0f;
+			return false;
+		}
+
 		/// <summary>
 		/// Return the secant of a radian.
 		/// Equivalent to: `1f / cos(x)`.

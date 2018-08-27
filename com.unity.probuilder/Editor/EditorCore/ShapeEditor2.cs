@@ -37,6 +37,7 @@ namespace UnityEditor.ProBuilder
 		Vector3 m_BoundingBoxOrigin;
 		Vector3 m_BoundingBoxCorner;
 		float m_ExtrudeDistance;
+		float m_Rotation;
 
 		public static void MenuOpenShapeCreator()
 		{
@@ -82,11 +83,16 @@ namespace UnityEditor.ProBuilder
 		void DoShapeSettingsGUI(int id)
 		{
 			GUI.DragWindow(k_SettingsWindowDragRect);
-//			GUILayout.Label("state: " + m_EditState);
 
 			m_ShapeType = (ShapeType) EditorGUILayout.EnumPopup(m_ShapeType);
 
+			EditorGUI.BeginChangeCheck();
+			m_Rotation = EditorGUILayout.Slider("Rotation", m_Rotation, 0f, 360f);
+			if (EditorGUI.EndChangeCheck() && m_Shape != null)
+				RebuildShape();
+
 			GUILayout.FlexibleSpace();
+
 			if(GUILayout.Button("Exit"))
 				DestroyImmediate(this);
 		}
@@ -141,7 +147,7 @@ namespace UnityEditor.ProBuilder
 		/// Get a bounding box from the mouse drag coordinates.
 		/// </summary>
 		/// <returns></returns>
-		OrientedBoundingBox GetBoundingBox()
+		OrientedBoundingBox GetDrawnBoundingBox()
 		{
 			var bb = new OrientedBoundingBox();
 			bb.center = ((m_BoundingBoxCorner + m_BoundingBoxOrigin) * .5f) + (m_Plane.normal * (m_ExtrudeDistance * .5f));
@@ -153,6 +159,34 @@ namespace UnityEditor.ProBuilder
 			corner.y = m_ExtrudeDistance;
 			bb.extents = Math.Abs(corner - origin) * .5f;
 			return bb;
+		}
+
+		OrientedBoundingBox GetShapeBoundingBox()
+		{
+			var bb = GetDrawnBoundingBox();
+			var userRotation = Quaternion.AngleAxis(m_Rotation, m_Plane.normal);
+			bb.size = GetClampedSize(bb, userRotation);
+			bb.rotation = bb.rotation * userRotation;
+			return bb;
+		}
+
+		Vector3 GetClampedSize(OrientedBoundingBox bounds, Quaternion rotation)
+		{
+			float nearest = Mathf.Infinity;
+
+			foreach (var dir in bounds.corners)
+			{
+				float distance;
+
+				if (bounds.IntersectRay(bounds.center, rotation * dir.normalized, out distance))
+					nearest = Mathf.Min(nearest, distance);
+			}
+
+			if (!(nearest < Mathf.Infinity))
+				return bounds.extents * 2f;
+
+			float scale = nearest / bounds.extents.magnitude;
+			return bounds.extents * scale * 2f;
 		}
 
 		void DoEditStateNone()
@@ -177,6 +211,7 @@ namespace UnityEditor.ProBuilder
 					m_BoundingBoxOrigin = ray.GetPoint(distance);
 					m_BoundingBoxCorner = m_BoundingBoxOrigin;
 					m_ExtrudeDistance = 0f;
+					m_Rotation = 0f;
 
 					m_EditState = EditState.Base;
 
@@ -199,7 +234,7 @@ namespace UnityEditor.ProBuilder
 
 				if (evt.type == EventType.MouseUp)
 				{
-					var bb = GetBoundingBox();
+					var bb = GetDrawnBoundingBox();
 
 					if (bb.size.x < k_MinBoundingBoxSize
 						|| bb.size.z < k_MinBoundingBoxSize
@@ -237,7 +272,7 @@ namespace UnityEditor.ProBuilder
 				evt.Use();
 				MeshSelection.SetSelection(m_Shape.gameObject);
 				m_BoundsEditor.center = Vector3.zero;
-				m_BoundsEditor.size = GetBoundingBox().size;
+				m_BoundsEditor.size = GetDrawnBoundingBox().size;
 				m_EditState = EditState.None;
 			}
 
@@ -247,7 +282,7 @@ namespace UnityEditor.ProBuilder
 
 		void DoEditStateBounds()
 		{
-			var shapeBounds = GetBoundingBox();
+			var shapeBounds = GetDrawnBoundingBox();
 
 			if (shapeBounds.size.sqrMagnitude < 0.1f)
 				return;
@@ -265,6 +300,7 @@ namespace UnityEditor.ProBuilder
 					shapeBounds.center = matrix.MultiplyPoint3x4(m_BoundsEditor.center);
 					shapeBounds.size = m_BoundsEditor.size;
 					m_Shape.Rebuild(shapeBounds.size);
+					m_Shape.transform.position = shapeBounds.center;
 					ProBuilderEditor.Refresh();
 				}
 			}
@@ -294,12 +330,13 @@ namespace UnityEditor.ProBuilder
 			if (m_Shape == null)
 				return;
 
-			var bb = GetBoundingBox();
+			var bb = GetShapeBoundingBox();
 			m_Shape.Rebuild(bb.size);
 			m_Shape.transform.position = bb.center;
 			m_Shape.transform.rotation = bb.rotation;
-
 			m_Shape.gameObject.SetActive(true);
+
+			ProBuilderEditor.Refresh();
 		}
 
 		void ClearShape()
@@ -310,7 +347,7 @@ namespace UnityEditor.ProBuilder
 
 		void DrawBoundingBox()
 		{
-			var bb = GetBoundingBox();
+			var bb = GetDrawnBoundingBox();
 
 			using (new Handles.DrawingScope(Handles.selectedColor, Matrix4x4.TRS(bb.center, bb.rotation, Vector3.one)))
 			{
