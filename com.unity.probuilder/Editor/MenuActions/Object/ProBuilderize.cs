@@ -15,15 +15,12 @@ namespace UnityEditor.ProBuilder.Actions
 
         public ProBuilderize()
         {
-            MeshSelection.objectSelectionChanged += () =>
-                {
-                    // can't just check if any MeshFilter is present because we need to know whether or not it's already a
-                    // probuilder mesh
-                    int meshCount = Selection.transforms.SelectMany(x => x.GetComponentsInChildren<MeshFilter>()).Count();
-                    m_Enabled = meshCount > 0 && meshCount != MeshSelection.selectedObjectCount;
-                };
-        }
+            MeshSelection.objectSelectionChanged -= OnSelectionChanged; 
+            MeshSelection.objectSelectionChanged += OnSelectionChanged;
 
+            OnSelectionChanged();
+        }
+        
         public override ToolbarGroup group
         {
             get { return ToolbarGroup.Object; }
@@ -196,6 +193,14 @@ namespace UnityEditor.ProBuilder.Actions
                 return new ActionResult(ActionResult.Status.Canceled, "Nothing Selected");
             else
                 return new ActionResult(ActionResult.Status.Success, "ProBuilderize " + i + (i > 1 ? " Objects" : " Object").ToString());
+        }
+
+        void OnSelectionChanged()
+        {
+            // can't just check if any MeshFilter is present because we need to know whether or not it's already a
+            // probuilder mesh
+            int meshCount = Selection.transforms.SelectMany(x => x.GetComponentsInChildren<MeshFilter>()).Count();
+            m_Enabled = meshCount > 0 && meshCount != MeshSelection.selectedObjectCount;
         }
     }
 }
