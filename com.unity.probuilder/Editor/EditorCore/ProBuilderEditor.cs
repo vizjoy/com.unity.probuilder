@@ -1,15 +1,13 @@
 using System;
 using UnityEngine;
 using System.Linq;
-using System.Reflection;
 using System.Collections.Generic;
+using UnityEditor.EditorTools;
 using UnityEditor.ProBuilder.Actions;
 using UnityEngine.ProBuilder;
 using PMesh = UnityEngine.ProBuilder.ProBuilderMesh;
 using UnityEngine.ProBuilder.MeshOperations;
-using Math = UnityEngine.ProBuilder.Math;
 using Object = UnityEngine.Object;
-using RaycastHit = UnityEngine.ProBuilder.RaycastHit;
 using UnityEditor.SettingsManagement;
 
 namespace UnityEditor.ProBuilder
@@ -17,8 +15,14 @@ namespace UnityEditor.ProBuilder
     /// <summary>
     /// Manages the ProBuilder toolbar window and tool mode.
     /// </summary>
-    public sealed class ProBuilderEditor : EditorWindow, IHasCustomMenu
+    [EditorTool("ProBuilder")]
+    public sealed class ProBuilderEditor : EditorTool
     {
+        public override GUIContent toolbarIcon
+        {
+            get { return null; }
+        }
+
         // Match the value set in RectSelection.cs
         const float k_MouseDragThreshold = 6f;
 
@@ -32,11 +36,10 @@ namespace UnityEditor.ProBuilder
         /// </value>
         public static event Action<SelectMode> selectModeChanged;
 
-        static EditorToolbar s_EditorToolbar;
         static ProBuilderEditor s_Instance;
 
         GUIContent[] m_EditModeIcons;
-        GUIStyle VertexTranslationInfoStyle;
+        static GUIStyle s_VertexTranslationInfoStyle;
 
         [UserSetting("General", "Show Scene Info", "Toggle the display of information about selected meshes in the Scene View.")]
         static Pref<bool> s_ShowSceneInfo = new Pref<bool>("editor.showSceneInfo", false);
@@ -103,7 +106,7 @@ namespace UnityEditor.ProBuilder
         SelectMode m_LastComponentMode;
         [UserSetting]
         internal static Pref<Shortcut[]> s_Shortcuts = new Pref<Shortcut[]>("editor.sceneViewShortcuts", Shortcut.DefaultShortcuts().ToArray());
-        GUIStyle m_CommandStyle;
+        static GUIStyle s_CommandStyle;
         Rect m_ElementModeToolbarRect = new Rect(3, 6, 128, 24);
 
         int m_DefaultControl;
@@ -198,7 +201,6 @@ namespace UnityEditor.ProBuilder
                     selectModeChanged(value);
 
                 UpdateMeshHandles(true);
-                s_Instance.Repaint();
             }
         }
 
@@ -239,6 +241,12 @@ namespace UnityEditor.ProBuilder
 
                 s_Init = true;
 
+                s_VertexTranslationInfoStyle = new GUIStyle();
+                s_VertexTranslationInfoStyle.normal.background = EditorGUIUtility.whiteTexture;
+                s_VertexTranslationInfoStyle.normal.textColor = new Color(1f, 1f, 1f, .6f);
+                s_VertexTranslationInfoStyle.padding = new RectOffset(3, 3, 3, 0);
+                s_CommandStyle = EditorGUIUtility.GetBuiltinSkin(EditorSkin.Inspector).FindStyle("Command");
+
                 s_SelectionRect = new GUIStyle()
                 {
                     normal = new GUIStyleState()
@@ -262,27 +270,16 @@ namespace UnityEditor.ProBuilder
 
         internal static void MenuOpenWindow()
         {
-            ProBuilderEditor editor = (ProBuilderEditor)EditorWindow.GetWindow(typeof(ProBuilderEditor),
-                    s_WindowIsFloating, PreferenceKeys.pluginTitle,
-                    true); // open as floating window
-            editor.isFloatingWindow = s_WindowIsFloating;
-        }
+            if (!(EditorToolContext.activeTool is ProBuilderEditor))
+                EditorTools.EditorTools.SetActiveTool<ProBuilderEditor>();
 
-        void OnBecameVisible()
-        {
-            // fixes maximizing/unmaximizing
-            s_Instance = this;
+            EditorWindow.GetWindow<EditorToolWindow>();
         }
 
         void OnEnable()
         {
             s_Instance = this;
-
-#if UNITY_2019_1_OR_NEWER
-            SceneView.duringSceneGui += OnSceneGUI;
-#else
-            SceneView.onSceneGUIDelegate += OnSceneGUI;
-#endif
+            SetTool(Tool.Move);
             ProGridsInterface.SubscribePushToGridEvent(PushToGrid);
             ProGridsInterface.SubscribeToolbarEvent(ProGridsToolbarOpen);
             MeshSelection.objectSelectionChanged += OnObjectSelectionChanged;
@@ -294,7 +291,6 @@ namespace UnityEditor.ProBuilder
 #endif
 
             LoadSettings();
-            InitGUI();
             UpdateSelection();
             HideSelectedWireframe();
 
@@ -306,9 +302,6 @@ namespace UnityEditor.ProBuilder
         {
             s_Instance = null;
 
-            if (s_EditorToolbar != null)
-                DestroyImmediate(s_EditorToolbar);
-
             ClearElementSelection();
 
             UpdateSelection();
@@ -316,11 +309,6 @@ namespace UnityEditor.ProBuilder
             if (selectionUpdated != null)
                 selectionUpdated(null);
 
-#if UNITY_2019_1_OR_NEWER
-            SceneView.duringSceneGui -= OnSceneGUI;
-#else
-            SceneView.onSceneGUIDelegate -= OnSceneGUI;
-#endif
             ProGridsInterface.UnsubscribePushToGridEvent(PushToGrid);
             ProGridsInterface.UnsubscribeToolbarEvent(ProGridsToolbarOpen);
             MeshSelection.objectSelectionChanged -= OnObjectSelectionChanged;
@@ -361,21 +349,6 @@ namespace UnityEditor.ProBuilder
                 s_Shortcuts.SetValue(Shortcut.DefaultShortcuts().ToArray(), true);
         }
 
-        void InitGUI()
-        {
-            if (s_EditorToolbar != null)
-                Object.DestroyImmediate(s_EditorToolbar);
-
-            s_EditorToolbar = ScriptableObject.CreateInstance<EditorToolbar>();
-            s_EditorToolbar.hideFlags = HideFlags.HideAndDontSave;
-            s_EditorToolbar.InitWindowProperties(this);
-
-            VertexTranslationInfoStyle = new GUIStyle();
-            VertexTranslationInfoStyle.normal.background = EditorGUIUtility.whiteTexture;
-            VertexTranslationInfoStyle.normal.textColor = new Color(1f, 1f, 1f, .6f);
-            VertexTranslationInfoStyle.padding = new RectOffset(3, 3, 3, 0);
-        }
-
         /// <summary>
         /// Rebuild the mesh wireframe and selection caches.
         /// </summary>
@@ -388,81 +361,6 @@ namespace UnityEditor.ProBuilder
             }
         }
 
-        void OnGUI()
-        {
-            if (m_CommandStyle == null)
-                m_CommandStyle = EditorGUIUtility.GetBuiltinSkin(EditorSkin.Inspector).FindStyle("Command");
-
-            Event e = Event.current;
-
-            switch (e.type)
-            {
-                case EventType.ContextClick:
-                    var menu = new GenericMenu();
-                    AddItemsToMenu(menu);
-                    menu.ShowAsContext();
-                    break;
-
-                case EventType.KeyDown:
-                    if (s_Shortcuts.value.Any(x => x.Matches(e.keyCode, e.modifiers)))
-                        e.Use();
-                    break;
-
-                case EventType.KeyUp:
-                    ShortcutCheck(e);
-                    break;
-            }
-
-            if (s_EditorToolbar != null)
-            {
-                s_EditorToolbar.OnGUI();
-            }
-            else
-            {
-                try
-                {
-                    InitGUI();
-                }
-                catch (System.Exception exception)
-                {
-                    Debug.LogWarning(string.Format("Failed initializing ProBuilder Toolbar:\n{0}", exception.ToString()));
-                }
-            }
-        }
-
-        void Menu_ToggleIconMode()
-        {
-            s_IsIconGui.value = !s_IsIconGui;
-            if (s_EditorToolbar != null)
-                Object.DestroyImmediate(s_EditorToolbar);
-            s_EditorToolbar = ScriptableObject.CreateInstance<EditorToolbar>();
-            s_EditorToolbar.hideFlags = HideFlags.HideAndDontSave;
-            s_EditorToolbar.InitWindowProperties(this);
-        }
-
-        public void AddItemsToMenu(GenericMenu menu)
-        {
-            bool floating = s_WindowIsFloating;
-
-            menu.AddItem(new GUIContent("Window/Open as Floating Window", ""), floating, () => SetIsUtilityWindow(true));
-            menu.AddItem(new GUIContent("Window/Open as Dockable Window", ""), !floating, () => SetIsUtilityWindow(false));
-            menu.AddSeparator("");
-
-            menu.AddItem(new GUIContent("Use Icon Mode", ""), s_IsIconGui,
-                Menu_ToggleIconMode);
-            menu.AddItem(new GUIContent("Use Text Mode", ""), !s_IsIconGui,
-                Menu_ToggleIconMode);
-        }
-
-        void SetIsUtilityWindow(bool isUtilityWindow)
-        {
-            s_WindowIsFloating.value = isUtilityWindow;
-            var windowTitle = titleContent;
-            Close();
-            var res = GetWindow(GetType(), isUtilityWindow);
-            res.titleContent = windowTitle;
-        }
-
         internal static VertexManipulationTool activeTool
         {
             get
@@ -473,7 +371,7 @@ namespace UnityEditor.ProBuilder
             }
         }
 
-        VertexManipulationTool GetTool<T>() where T : VertexManipulationTool, new()
+        static VertexManipulationTool GetTool<T>() where T : VertexManipulationTool, new()
         {
             VertexManipulationTool tool;
 
@@ -505,12 +403,12 @@ namespace UnityEditor.ProBuilder
             }
         }
 
-        void OnSceneGUI(SceneView sceneView)
+        public override void OnToolGUI(EditorWindow window)
         {
-#if !UNITY_2018_2_OR_NEWER
-            if (s_ResetOnSceneGUIState != null)
-                s_ResetOnSceneGUIState.Invoke(sceneView, null);
-#endif
+            var sceneView = window as SceneView;
+
+            if (!sceneView)
+                return;
 
             SceneStyles.Init();
 
@@ -559,15 +457,6 @@ namespace UnityEditor.ProBuilder
                 if (!m_Hovering.Equals(m_HoveringPrevious))
                     SceneView.RepaintAll();
             }
-
-            if (Tools.current == Tool.View)
-                return;
-
-            // Overrides the toolbar transform tools
-            if (Tools.current != Tool.None && Tools.current != m_CurrentTool)
-                SetTool_Internal(Tools.current);
-
-            Tools.current = Tool.None;
 
             if (selectMode.IsMeshElementMode() && MeshSelection.selectedVertexCount > 0)
             {
@@ -946,18 +835,6 @@ namespace UnityEditor.ProBuilder
         internal void SetTool(Tool newTool)
         {
             m_CurrentTool = newTool;
-        }
-
-        /// <summary>
-        /// Calls SetTool(), then Updates the UV Editor window if applicable.
-        /// </summary>
-        /// <param name="newTool"></param>
-        void SetTool_Internal(Tool newTool)
-        {
-            SetTool(newTool);
-
-            if (UVEditor.instance != null)
-                UVEditor.instance.SetTool(newTool);
         }
 
         /// <summary>

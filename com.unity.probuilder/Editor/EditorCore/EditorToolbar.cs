@@ -1,48 +1,80 @@
 using UnityEngine;
-using UnityEditor;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.EditorTools;
 using UnityEngine.ProBuilder;
 using UnityEditor.SettingsManagement;
 
 namespace UnityEditor.ProBuilder
 {
-    [System.Serializable]
-    sealed class EditorToolbar : ScriptableObject
+    [CustomEditor(typeof(ProBuilderEditor))]
+    sealed class EditorToolbar : Editor
     {
-        EditorToolbar() {}
-
-        Pref<Vector2> m_Scroll = new Pref<Vector2>("editor.scrollPosition", Vector2.zero, SettingsScope.User);
-        public EditorWindow window;
-
-        bool isFloating { get { return ProBuilderEditor.instance != null && ProBuilderEditor.instance.isFloatingWindow; } }
-        bool isIconMode = true;
+        EditorToolbar()
+        {
+            m_ScrollIconDown = null;
+        }
 
         [UserSetting("Toolbar", "Shift Key Tooltips", "Tooltips will only show when the Shift key is held")]
         internal static Pref<bool> s_ShiftOnlyTooltips = new Pref<bool>("editor.shiftOnlyTooltips", false, SettingsScope.User);
 
-        SimpleTuple<string, double> tooltipTimer = new SimpleTuple<string, double>("", 0.0);
+        Pref<Vector2> m_Scroll = new Pref<Vector2>("editor.scrollPosition", Vector2.zero, SettingsScope.User);
+
+        bool m_IsIconMode = true;
+
+        SimpleTuple<string, double> m_TooltipTimer = new SimpleTuple<string, double>("", 0.0);
         // the element currently being hovered
-        string hoveringTooltipName = "";
+        string m_HoveringTooltipName = "";
         // the mouse has hovered > tooltipTimerRefresh
-        bool showTooltipTimer = false;
+        bool m_ShowTooltipTimer = false;
         // how long a tooltip will wait before showing
-        float tooltipTimerRefresh = 1f;
+        float m_TooltipTimerRefresh = 1f;
 
-        Texture2D   scrollIconUp = null,
-                    scrollIconDown = null,
-                    scrollIconRight = null,
-                    scrollIconLeft = null;
+        Texture2D m_ScrollIconUp;
+        Texture2D m_ScrollIconDown;
+        Texture2D m_ScrollIconRight;
+        Texture2D m_ScrollIconLeft;
+        List<MenuAction> m_Actions;
+        int m_ActionsLength = 0;
 
-        [SerializeField] List<MenuAction> m_Actions;
-        [SerializeField] int m_ActionsLength = 0;
+        // animated scrolling vars
+        bool m_DoAnimateScroll;
+        Vector2 m_ScrollOrigin = Vector2.zero;
+        Vector2 m_ScrollTarget = Vector2.zero;
+        double m_ScrollStartTime;
+        float m_ScrollTotalTime;
+        const float k_Scroll_Pixels_Per_Second = 1250f;
 
-        public void InitWindowProperties(EditorWindow win)
+        const int k_ScrollButtonSize = 11;
+
+        bool m_ShowScrollButtons;
+        bool m_IsHorizontalMenu;
+        int m_ContentWidth = 1;
+        int m_ContentHeight = 1;
+
+        int m_Columns;
+        int m_Rows;
+
+        EditorWindow m_ActiveToolWindow;
+
+        EditorWindow window
         {
-            win.wantsMouseMove = true;
-            win.autoRepaintOnSceneChange = true;
-            this.window = win;
+            get
+            {
+                if (!m_ActiveToolWindow)
+                    m_ActiveToolWindow = EditorWindow.GetWindow<EditorToolWindow>();
+                return m_ActiveToolWindow;
+            }
+        }
+
+        int windowWidth
+        {
+            get { return (int) Mathf.Ceil(window.position.width); }
+        }
+
+        int windowHeight
+        {
+            get { return (int) Mathf.Ceil(window.position.height); }
         }
 
         void OnEnable()
@@ -56,23 +88,22 @@ namespace UnityEditor.ProBuilder
             EditorApplication.update -= Update;
             EditorApplication.update += Update;
 
-            tooltipTimer.item1 = "";
-            tooltipTimer.item2 = 0.0;
-            showTooltipTimer = false;
-            scrollIconUp    = IconUtility.GetIcon("Toolbar/ShowNextPage_Up");
-            scrollIconDown  = IconUtility.GetIcon("Toolbar/ShowNextPage_Down");
-            scrollIconRight = IconUtility.GetIcon("Toolbar/ShowNextPage_Right");
-            scrollIconLeft  = IconUtility.GetIcon("Toolbar/ShowNextPage_Left");
+            m_TooltipTimer.item1 = "";
+            m_TooltipTimer.item2 = 0.0;
+            m_ShowTooltipTimer = false;
+            m_ScrollIconUp    = IconUtility.GetIcon("Toolbar/ShowNextPage_Up");
+            m_ScrollIconDown  = IconUtility.GetIcon("Toolbar/ShowNextPage_Down");
+            m_ScrollIconRight = IconUtility.GetIcon("Toolbar/ShowNextPage_Right");
+            m_ScrollIconLeft  = IconUtility.GetIcon("Toolbar/ShowNextPage_Left");
 
-            isIconMode = ProBuilderEditor.s_IsIconGui;
-            this.window = ProBuilderEditor.instance;
+            m_IsIconMode = ProBuilderEditor.s_IsIconGui;
             CalculateMaxIconSize();
         }
 
         void OnDisable()
         {
             // don't unsubscribe here because on exiting playmode OnEnable/OnDisable
-            // is called.  no clue why.
+            // is called.
             // EditorApplication.update -= Update;
             ProBuilderEditor.selectionUpdated -= OnElementSelectionChange;
         }
@@ -87,10 +118,7 @@ namespace UnityEditor.ProBuilder
 
         void OnElementSelectionChange(ProBuilderMesh[] selection)
         {
-            if (!window)
-                GameObject.DestroyImmediate(this);
-            else
-                window.Repaint();
+            Repaint();
         }
 
         void ShowTooltip(Rect rect, string content, Vector2 scrollOffset)
@@ -118,37 +146,37 @@ namespace UnityEditor.ProBuilder
 
             if (!s_ShiftOnlyTooltips)
             {
-                if (!tooltipTimer.item1.Equals(hoveringTooltipName))
+                if (!m_TooltipTimer.item1.Equals(m_HoveringTooltipName))
                 {
-                    tooltipTimer.item1 = hoveringTooltipName;
-                    tooltipTimer.item2 = EditorApplication.timeSinceStartup;
+                    m_TooltipTimer.item1 = m_HoveringTooltipName;
+                    m_TooltipTimer.item2 = EditorApplication.timeSinceStartup;
                 }
 
-                if (!string.IsNullOrEmpty(tooltipTimer.item1))
+                if (!string.IsNullOrEmpty(m_TooltipTimer.item1))
                 {
-                    if (EditorApplication.timeSinceStartup - tooltipTimer.item2 > tooltipTimerRefresh)
+                    if (EditorApplication.timeSinceStartup - m_TooltipTimer.item2 > m_TooltipTimerRefresh)
                     {
-                        if (!showTooltipTimer)
+                        if (!m_ShowTooltipTimer)
                         {
-                            showTooltipTimer = true;
+                            m_ShowTooltipTimer = true;
                             window.Repaint();
                         }
                     }
                     else
                     {
-                        showTooltipTimer = false;
+                        m_ShowTooltipTimer = false;
                     }
                 }
             }
 
             // do scroll animations
-            if (doAnimateScroll)
+            if (m_DoAnimateScroll)
             {
-                double scrollTimer = EditorApplication.timeSinceStartup - scrollStartTime;
-                m_Scroll.value = Vector2.Lerp(scrollOrigin, scrollTarget, (float)scrollTimer / scrollTotalTime);
+                double scrollTimer = EditorApplication.timeSinceStartup - m_ScrollStartTime;
+                m_Scroll.value = Vector2.Lerp(m_ScrollOrigin, m_ScrollTarget, (float)scrollTimer / m_ScrollTotalTime);
 
-                if (scrollTimer >= scrollTotalTime)
-                    doAnimateScroll = false;
+                if (scrollTimer >= m_ScrollTotalTime)
+                    m_DoAnimateScroll = false;
 
                 window.Repaint();
             }
@@ -166,7 +194,7 @@ namespace UnityEditor.ProBuilder
             m_ContentHeight = (int)iconSize.y + 4;
 
             // if not in icon mode, we have to iterate all buttons to figure out what the maximum size is
-            if (!isIconMode)
+            if (!m_IsIconMode)
             {
                 for (int i = 1; i < m_Actions.Count; i++)
                 {
@@ -183,41 +211,22 @@ namespace UnityEditor.ProBuilder
             window.Repaint();
         }
 
-        // animated scrolling vars
-        bool doAnimateScroll = false;
-        Vector2 scrollOrigin = Vector2.zero;
-        Vector2 scrollTarget = Vector2.zero;
-        double scrollStartTime = 0;
-        float scrollTotalTime = 0f;
-        const float SCROLL_PIXELS_PER_SECOND = 1250f;
-
         void StartScrollAnimation(float x, float y)
         {
-            scrollOrigin = m_Scroll;
-            scrollTarget.x = x;
-            scrollTarget.y = y;
-            scrollStartTime = EditorApplication.timeSinceStartup;
-            scrollTotalTime = Vector2.Distance(scrollOrigin, scrollTarget) / SCROLL_PIXELS_PER_SECOND;
-            doAnimateScroll = true;
+            m_ScrollOrigin = m_Scroll;
+            m_ScrollTarget.x = x;
+            m_ScrollTarget.y = y;
+            m_ScrollStartTime = EditorApplication.timeSinceStartup;
+            m_ScrollTotalTime = Vector2.Distance(m_ScrollOrigin, m_ScrollTarget) / k_Scroll_Pixels_Per_Second;
+            m_DoAnimateScroll = true;
         }
-
-        int SCROLL_BTN_SIZE { get { return isFloating ? 12 : 11; } }
-        int windowWidth { get { return (int)Mathf.Ceil(window.position.width); } }
-        int windowHeight { get { return (int)Mathf.Ceil(window.position.height); } }
-
-        bool m_ShowScrollButtons = false;
-        bool m_IsHorizontalMenu = false;
-        int m_ContentWidth = 1, m_ContentHeight = 1;
-
-        int m_Columns;
-        int m_Rows;
 
         bool IsActionValid(MenuAction action)
         {
-            return !action.hidden && (!isIconMode || action.icon != null);
+            return !action.hidden && (!m_IsIconMode || action.icon != null);
         }
 
-        public void OnGUI()
+        public override void OnInspectorGUI()
         {
             Event e = Event.current;
             Vector2 mpos = e.mousePosition;
@@ -230,10 +239,10 @@ namespace UnityEditor.ProBuilder
                 if (IsActionValid(m_Actions[i]))
                     menuActionsCount++;
 
-            if (isIconMode && menuActionsCount < 1)
+            if (m_IsIconMode && menuActionsCount < 1)
             {
-                isIconMode = false;
-                ProBuilderEditor.s_IsIconGui.value = isIconMode;
+                m_IsIconMode = false;
+                ProBuilderEditor.s_IsIconGui.value = m_IsIconMode;
                 CalculateMaxIconSize();
                 Debug.LogWarning("ProBuilder: Toolbar icons failed to load, reverting to text mode.  Please ensure that the ProBuilder folder contents are unmodified.  If the menu is still not visible, try closing and re-opening the Editor Window.");
                 return;
@@ -271,8 +280,8 @@ namespace UnityEditor.ProBuilder
 
             if (showScrollButtons)
             {
-                availableHeight -= SCROLL_BTN_SIZE * 2;
-                availableWidth -= SCROLL_BTN_SIZE * 2;
+                availableHeight -= k_ScrollButtonSize * 2;
+                availableWidth -= k_ScrollButtonSize * 2;
             }
 
             if (isHorizontal && e.type == EventType.ScrollWheel && e.delta.sqrMagnitude > .001f)
@@ -284,7 +293,7 @@ namespace UnityEditor.ProBuilder
             // the math for matching layout group width for icons is easy enough, but text
             // is a lot more complex.  so for horizontal text toolbars always show the horizontal
             // scroll buttons.
-            int maxHorizontalScroll = !isIconMode ? 10000 : contentWidth - availableWidth;
+            int maxHorizontalScroll = !m_IsIconMode ? 10000 : contentWidth - availableWidth;
             int maxVerticalScroll = contentHeight - availableHeight;
 
             // only change before a layout event
@@ -299,7 +308,7 @@ namespace UnityEditor.ProBuilder
 
                     GUI.enabled = ((Vector2)m_Scroll).x > 0;
 
-                    if (GUILayout.Button(scrollIconLeft, UI.EditorGUIUtility.ButtonNoBackgroundSmallMarginStyle, GUILayout.ExpandHeight(true)))
+                    if (GUILayout.Button(m_ScrollIconLeft, UI.EditorGUIUtility.ButtonNoBackgroundSmallMarginStyle, GUILayout.ExpandHeight(true)))
                         StartScrollAnimation(Mathf.Max(((Vector2)m_Scroll).x - availableWidth, 0f), 0f);
 
                     GUI.enabled = true;
@@ -308,7 +317,7 @@ namespace UnityEditor.ProBuilder
                 {
                     GUI.enabled = ((Vector2)m_Scroll).y > 0;
 
-                    if (GUILayout.Button(scrollIconUp, UI.EditorGUIUtility.ButtonNoBackgroundSmallMarginStyle))
+                    if (GUILayout.Button(m_ScrollIconUp, UI.EditorGUIUtility.ButtonNoBackgroundSmallMarginStyle))
                         StartScrollAnimation(0f, Mathf.Max(((Vector2)m_Scroll).y - availableHeight, 0f));
 
                     GUI.enabled = true;
@@ -337,7 +346,7 @@ namespace UnityEditor.ProBuilder
                 if (!IsActionValid(action))
                     continue;
 
-                if (isIconMode)
+                if (m_IsIconMode)
                 {
                     if (action.DoButton(isHorizontal, e.alt, ref optionRect, GUILayout.MaxHeight(m_ContentHeight + 12)) && !e.shift)
                     {
@@ -349,11 +358,11 @@ namespace UnityEditor.ProBuilder
                             e.type != EventType.Layout &&
                             optionRect.Contains(e.mousePosition))
                         {
-                            hoveringTooltipName = action.tooltip.title + "_alt";
-                            tooltipTimerRefresh = .5f;
+                            m_HoveringTooltipName = action.tooltip.title + "_alt";
+                            m_TooltipTimerRefresh = .5f;
                             hovering = true;
 
-                            if (showTooltipTimer)
+                            if (m_ShowTooltipTimer)
                             {
                                 tooltipShown = true;
                                 ShowTooltip(optionRect, "Alt + Click for Options", m_Scroll);
@@ -376,10 +385,10 @@ namespace UnityEditor.ProBuilder
                     !hovering &&
                     buttonRect.Contains(e.mousePosition))
                 {
-                    hoveringTooltipName = action.tooltip.title;
-                    tooltipTimerRefresh = 1f;
+                    m_HoveringTooltipName = action.tooltip.title;
+                    m_TooltipTimerRefresh = 1f;
 
-                    if (e.shift || showTooltipTimer)
+                    if (e.shift || m_ShowTooltipTimer)
                     {
                         tooltipShown = true;
                         ShowTooltip(buttonRect, action.tooltip, m_Scroll);
@@ -408,7 +417,7 @@ namespace UnityEditor.ProBuilder
                 if (isHorizontal)
                 {
                     GUI.enabled = m_Scroll.value.x < maxHorizontalScroll - 2;
-                    if (GUILayout.Button(scrollIconRight, UI.EditorGUIUtility.ButtonNoBackgroundSmallMarginStyle, GUILayout.ExpandHeight(true)))
+                    if (GUILayout.Button(m_ScrollIconRight, UI.EditorGUIUtility.ButtonNoBackgroundSmallMarginStyle, GUILayout.ExpandHeight(true)))
                         StartScrollAnimation(Mathf.Min(m_Scroll.value.x + availableWidth + 2, maxHorizontalScroll), 0f);
                     GUI.enabled = true;
 
@@ -417,7 +426,7 @@ namespace UnityEditor.ProBuilder
                 else
                 {
                     GUI.enabled = m_Scroll.value.y < maxVerticalScroll - 2;
-                    if (GUILayout.Button(scrollIconDown, UI.EditorGUIUtility.ButtonNoBackgroundSmallMarginStyle))
+                    if (GUILayout.Button(m_ScrollIconDown, UI.EditorGUIUtility.ButtonNoBackgroundSmallMarginStyle))
                         StartScrollAnimation(0f, Mathf.Min(m_Scroll.value.y + availableHeight + 2, maxVerticalScroll));
                     GUI.enabled = true;
                 }
@@ -427,7 +436,7 @@ namespace UnityEditor.ProBuilder
                 TooltipEditor.Hide();
 
             if (e.type != EventType.Layout && !hovering)
-                tooltipTimer.item1 = "";
+                m_TooltipTimer.item1 = "";
 
             if (forceRepaint || (EditorWindow.mouseOverWindow == this && e.delta.sqrMagnitude > .001f) || e.isMouse)
                 window.Repaint();
