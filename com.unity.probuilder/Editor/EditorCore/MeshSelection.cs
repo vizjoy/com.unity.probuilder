@@ -8,7 +8,7 @@ using UnityEngine.ProBuilder.MeshOperations;
 namespace UnityEditor.ProBuilder
 {
     /// <summary>
-    /// Helper functions for working with Unity object selection and ProBuilder mesh attribute selections.
+    /// Helper functions for working with Unity object selection and ProBuilder mesh element selections.
     /// </summary>
     [InitializeOnLoad]
     public static class MeshSelection

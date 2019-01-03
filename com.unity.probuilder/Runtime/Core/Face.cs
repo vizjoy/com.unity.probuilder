@@ -15,7 +15,7 @@ namespace UnityEngine.ProBuilder
     /// ProBuilder automatically manages condensing common vertices in the EditorMeshUtility.Optimize function.
     /// </summary>
     [Serializable]
-    public sealed class Face
+    public sealed class Face : ISelectable
     {
         [FormerlySerializedAs("_indices")]
         [SerializeField]
@@ -448,6 +448,31 @@ namespace UnityEngine.ProBuilder
         {
             Array.Reverse(m_Indexes);
             InvalidateCache();
+        }
+
+        public IEnumerable<T> Convert<T>() where T : ISelectable
+        {
+            if (typeof(T) == typeof(VertexIndex))
+            {
+                var indices = new VertexIndex[distinctIndexesInternal.Length];
+                for(int i = 0, c = distinctIndexesInternal.Length; i < c; i++)
+                    indices[i] = new VertexIndex(distinctIndexesInternal[i]);
+                return indices as IEnumerable<T>;
+            }
+
+            if (typeof(T) == typeof(Edge))
+                return edgesInternal as IEnumerable<T>;
+
+            if (typeof(T) == typeof(Face))
+                return new Face[] { this } as IEnumerable<T>;
+
+            return new T[0];
+        }
+
+        public void AppendIndices(List<int> indices)
+        {
+            foreach (var index in distinctIndexesInternal)
+                indices.Add(index);
         }
     }
 }

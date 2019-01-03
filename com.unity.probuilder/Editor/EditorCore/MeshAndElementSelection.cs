@@ -1,17 +1,33 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.ProBuilder;
+using Math = UnityEngine.ProBuilder.Math;
 
 namespace UnityEditor.ProBuilder
 {
     /// <summary>
     /// Represents the state of a ProBuilderMesh and it's selected elements.
     /// </summary>
-    abstract class MeshAndElementSelection
+    [Serializable]
+    // todo mark sealed
+    class MeshAndElementSelection
     {
+        [SerializeField]
         ProBuilderMesh m_Mesh;
 
+        [SerializeField]
+        List<VertexIndex> m_Vertices;
+
+        [SerializeField]
+        List<Edge> m_Edges;
+
+        [SerializeField]
+        List<Face> m_Faces;
+
+        // Cached information
+        [SerializeField]
         List<ElementGroup> m_ElementGroups;
 
         public ProBuilderMesh mesh

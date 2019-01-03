@@ -8,7 +8,7 @@ namespace UnityEngine.ProBuilder
     /// An edge connecting two vertices. May point to an index in the vertices or the sharedIndexes array (local / common in ProBuilder terminology).
     /// </summary>
     [System.Serializable]
-    public struct Edge : System.IEquatable<Edge>
+    public struct Edge : ISelectable, System.IEquatable<Edge>
     {
         /// <value>
         /// An index corresponding to a mesh vertex array.
@@ -171,6 +171,22 @@ namespace UnityEngine.ProBuilder
         {
             var common = lookup[index];
             return lookup[a] == common || lookup[b] == common;
+        }
+
+        public IEnumerable<T> Convert<T>() where T : ISelectable
+        {
+            if (typeof(T) == typeof(VertexIndex))
+                return new VertexIndex[] { a, b } as IEnumerable<T>;
+            if (typeof(T) == typeof(Edge))
+                return new Edge[] { this } as IEnumerable<T>;
+
+            return new T[0];
+        }
+
+        public void AppendIndices(List<int> indices)
+        {
+            indices.Add(a);
+            indices.Add(b);
         }
     }
 }
