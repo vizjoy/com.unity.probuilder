@@ -153,10 +153,19 @@ namespace UnityEditor.ProBuilder
         static MethodInfo s_FindNearestVertex;
         static object[] s_FindNearestVertexArguments = new object[] { null, null, null };
 
-        internal IEnumerable<MeshAndElementSelection> elementSelection
-        {
-            get { return MeshSelection.elementSelection; }
-        }
+        internal CachedValue<IEnumerable<VertexManipulationToolSelection>> elementSelection = new CachedValue<IEnumerable<VertexManipulationToolSelection>>(
+            () =>
+            {
+                // todo DON'T SPAM THIS
+                return VertexManipulationToolSelection.GetVertexManipulationToolSelection(
+                    MeshSelection.top,
+                    ProBuilderEditor.selectMode,
+                    pivotPoint,
+                    handleOrientation,
+                    EditorUtility.IsTextureMode(ProBuilderEditor.selectMode)
+                        ? VertexComparison.Discrete
+                        : VertexComparison.Common);
+            });
 
         protected static bool vertexDragging
         {
@@ -216,8 +225,6 @@ namespace UnityEditor.ProBuilder
                     BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Instance);
         }
 
-        internal abstract MeshAndElementSelection GetElementSelection(ProBuilderMesh mesh, PivotPoint pivot, HandleOrientation orientation);
-
         public void OnSceneGUI(Event evt)
         {
             // necessary because there is no callback on toolbar changes
@@ -233,7 +240,7 @@ namespace UnityEditor.ProBuilder
             {
                 m_HandlePosition = MeshSelection.GetHandlePosition();
                 m_HandleRotation = MeshSelection.GetHandleRotation();
-                
+
                 m_HandlePositionOrigin = m_HandlePosition;
                 m_HandleRotationOrigin = m_HandleRotation;
                 handleRotationOriginInverse = Quaternion.Inverse(m_HandleRotation);

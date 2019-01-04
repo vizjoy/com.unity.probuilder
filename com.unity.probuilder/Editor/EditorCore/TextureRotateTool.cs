@@ -41,24 +41,21 @@ namespace UnityEditor.ProBuilder
                 else if (progridsSnapEnabled)
                     m_Rotation = Snapping.SnapValue(m_Rotation, progridsSnapValue);
 
-                foreach (var mesh in elementSelection)
+                foreach (var selection in elementSelection.value)
                 {
-                    if (!(mesh is MeshAndTextures))
-                        continue;
-                    var mat = (MeshAndTextures) mesh;
+                    var data = GetCachedData(selection.mesh);
+                    var origins = data.origins;
+                    var positions = data.textures;
 
-                    var origins = mat.origins;
-                    var positions = mat.textures;
-
-                    foreach (var group in mat.elementGroups)
+                    foreach (var group in data.elementGroups)
                     {
                         foreach (var index in group.indices)
-                            positions[index] = mat.postApplyMatrix.MultiplyPoint(
+                            positions[index] = group.postApplyMatrix.MultiplyPoint(
                                     Math.RotateAroundPoint(
-                                        mat.preApplyMatrix.MultiplyPoint3x4(origins[index]), Vector2.zero, -m_Rotation));
+                                        group.preApplyMatrix.MultiplyPoint3x4(origins[index]), Vector2.zero, -m_Rotation));
                     }
 
-                    mesh.mesh.mesh.SetUVs(k_TextureChannel, positions);
+                    selection.mesh.mesh.SetUVs(k_TextureChannel, positions);
                 }
             }
         }

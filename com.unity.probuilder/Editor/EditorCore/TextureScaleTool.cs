@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.ProBuilder;
 
 namespace UnityEditor.ProBuilder
 {
@@ -52,23 +51,20 @@ namespace UnityEditor.ProBuilder
                 delta.x = 1f / delta.x;
                 delta.y = 1f / delta.y;
 
-                foreach (var mesh in elementSelection)
+                foreach (var selection in elementSelection.value)
                 {
-                    if (!(mesh is MeshAndTextures))
-                        continue;
+                    var data = GetCachedData(selection.mesh);
+                    var origins = data.origins;
+                    var positions = data.textures;
 
-                    var mat = (MeshAndTextures) mesh;
-                    var origins = mat.origins;
-                    var positions = mat.textures;
-
-                    foreach (var group in mesh.elementGroups)
+                    foreach (var group in data.elementGroups)
                     {
                         foreach (var index in group.indices)
-                            positions[index] = mat.postApplyMatrix.MultiplyPoint(
-                                    Vector2.Scale(mat.preApplyMatrix.MultiplyPoint3x4(origins[index]), delta));
+                            positions[index] = group.postApplyMatrix.MultiplyPoint(
+                                    Vector2.Scale(group.preApplyMatrix.MultiplyPoint3x4(origins[index]), delta));
                     }
 
-                    mesh.mesh.mesh.SetUVs(k_TextureChannel, positions);
+                    selection.mesh.mesh.SetUVs(k_TextureChannel, positions);
                 }
             }
         }

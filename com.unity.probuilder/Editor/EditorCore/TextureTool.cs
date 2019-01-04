@@ -7,114 +7,110 @@ namespace UnityEditor.ProBuilder
 {
     abstract class TextureTool : VertexManipulationTool
     {
-        const bool k_CollectCoincidentVertices = false;
         protected const int k_TextureChannel = 0;
 
-        const string UnityMoveSnapX = "MoveSnapX";
-        const string UnityMoveSnapY = "MoveSnapY";
-        const string UnityMoveSnapZ = "MoveSnapZ";
-        const string UnityScaleSnap = "ScaleSnap";
-        const string UnityRotateSnap = "RotationSnap";
+        internal class TextureModificationData
+        {
+            public List<Vector4> origins;
+            public List<Vector4> textures;
+            public List<TextureModificationElementGroup> elementGroups;
+        }
+
+        internal class TextureModificationElementGroup
+        {
+            public IEnumerable<int> indices;
+            public Matrix4x4 preApplyMatrix;
+            public Matrix4x4 postApplyMatrix;
+        }
+
+        Dictionary<ProBuilderMesh, TextureModificationData> m_TextureSelection = new Dictionary<ProBuilderMesh, TextureModificationData>();
+
+        internal TextureModificationData GetCachedData(ProBuilderMesh mesh)
+        {
+            return m_TextureSelection[mesh];
+        }
+
+        const string k_UnityMoveSnapX = "MoveSnapX";
+        const string k_UnityMoveSnapY = "MoveSnapY";
+        const string k_UnityMoveSnapZ = "MoveSnapZ";
+        const string k_UnityScaleSnap = "ScaleSnap";
+        const string k_UnityRotateSnap = "RotationSnap";
 
         protected static float relativeSnapX
         {
-            get { return EditorPrefs.GetFloat(UnityMoveSnapX, 1f); }
+            get { return EditorPrefs.GetFloat(k_UnityMoveSnapX, 1f); }
         }
 
         protected static float relativeSnapY
         {
-            get { return EditorPrefs.GetFloat(UnityMoveSnapY, 1f); }
+            get { return EditorPrefs.GetFloat(k_UnityMoveSnapY, 1f); }
         }
 
         protected static float relativeSnapZ
         {
-            get { return EditorPrefs.GetFloat(UnityMoveSnapZ, 1f); }
+            get { return EditorPrefs.GetFloat(k_UnityMoveSnapZ, 1f); }
         }
 
         protected static float relativeSnapScale
         {
-            get { return EditorPrefs.GetFloat(UnityScaleSnap, .1f); }
+            get { return EditorPrefs.GetFloat(k_UnityScaleSnap, .1f); }
         }
 
         protected static float relativeSnapRotation
         {
-            get { return EditorPrefs.GetFloat(UnityRotateSnap, 15f); }
+            get { return EditorPrefs.GetFloat(k_UnityRotateSnap, 15f); }
         }
 
-        protected class MeshAndTextures : MeshAndElementSelection
+        protected override void OnToolEngaged()
         {
-            List<Vector4> m_Origins;
-            List<Vector4> m_Textures;
+            base.OnToolEngaged();
 
-            Matrix4x4 m_PreApplyMatrix;
-            Matrix4x4 m_PostApplyMatrix;
+            m_TextureSelection.Clear();
 
-            public Matrix4x4 preApplyMatrix
+            foreach (var selection in elementSelection.value)
             {
-                get
+                var data = new TextureModificationData();
+                data.textures = new List<Vector4>();
+                selection.mesh.GetUVs(k_TextureChannel, data.textures);
+                data.origins = new List<Vector4>(data.textures);
+
+                var groups = new List<TextureModificationElementGroup>();
+
+                foreach (var group in selection.elementGroups)
                 {
-                    return m_PreApplyMatrix;
+                    var grp = new TextureModificationElementGroup();
+                    grp.indices = group.indices;
+                    grp.preApplyMatrix = Matrix4x4.Translate(-Bounds2D.Center(data.origins, grp.indices));
+                    grp.postApplyMatrix = grp.preApplyMatrix.inverse;
+                    groups.Add(grp);
                 }
 
-                private set
-                {
-                    m_PreApplyMatrix = value;
-                    m_PostApplyMatrix = value.inverse;
-                }
-            }
+                data.elementGroups = groups;
 
-            public Matrix4x4 postApplyMatrix
-            {
-                get
-                {
-                    return m_PostApplyMatrix;
-                }
-
-                private set
-                {
-                    m_PostApplyMatrix = value;
-                    m_PreApplyMatrix = value.inverse;
-                }
-            }
-
-            public List<Vector4> textures
-            {
-                get { return m_Textures; }
-            }
-
-            public List<Vector4> origins
-            {
-                get { return m_Origins; }
-            }
-
-            public MeshAndTextures(ProBuilderMesh mesh, PivotPoint pivot, HandleOrientation orientation) : base(mesh, pivot, orientation, k_CollectCoincidentVertices)
-            {
-                m_Textures = new List<Vector4>();
-                mesh.GetUVs(k_TextureChannel, m_Textures);
-                m_Origins = new List<Vector4>(m_Textures);
-                preApplyMatrix = Matrix4x4.Translate(-Bounds2D.Center(m_Origins, mesh.selectedIndexesInternal));
+                m_TextureSelection.Add(selection.mesh, data);
             }
         }
 
+        // Texture tools do not update the ProBuilderMesh in realtime, but rather the MeshFilter.sharedMesh.
+        // After the modification is finished, apply the changes back to ProBuilderMesh.
         protected override void OnToolDisengaged()
         {
             var isFaceMode = ProBuilderEditor.selectMode.ContainsFlag(SelectMode.TextureFace | SelectMode.Face);
 
-            foreach (var mesh in elementSelection)
+            foreach (var selection in elementSelection.value)
             {
-                if (!(mesh is MeshAndTextures))
-                    continue;
+                var data = GetCachedData(selection.mesh);
 
                 if (isFaceMode)
                 {
-                    foreach (var face in mesh.mesh.selectedFacesInternal)
+                    foreach (var face in selection.mesh.selectedFacesInternal)
                         face.manualUV = true;
                 }
                 else
                 {
-                    var indices = new HashSet<int>(mesh.elementGroups.SelectMany(x => x.indices));
+                    var indices = new HashSet<int>(data.elementGroups.SelectMany(x => x.indices));
 
-                    foreach (var face in mesh.mesh.facesInternal)
+                    foreach (var face in selection.mesh.facesInternal)
                     {
                         foreach (var index in face.distinctIndexesInternal)
                         {
@@ -127,14 +123,9 @@ namespace UnityEditor.ProBuilder
                     }
                 }
 
-                var textures = ((MeshAndTextures)mesh).textures;
-                mesh.mesh.SetUVs(k_TextureChannel, textures);
+                var textures = GetCachedData(selection.mesh).textures;
+                selection.mesh.SetUVs(k_TextureChannel, textures);
             }
-        }
-
-        internal override MeshAndElementSelection GetElementSelection(ProBuilderMesh mesh, PivotPoint pivot, HandleOrientation orientation)
-        {
-            return new MeshAndTextures(mesh, pivot, orientation);
         }
     }
 }

@@ -1011,7 +1011,7 @@ namespace UnityEditor.ProBuilder
             if (selectionChanged)
             {
                 UpdateSceneInfo();
-                MeshSelection.OnComponentSelectionChanged();
+                MeshSelection.OnElementSelectionChanged();
             }
 
             if (selectionUpdated != null)

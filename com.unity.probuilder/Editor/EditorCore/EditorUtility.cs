@@ -492,20 +492,6 @@ namespace UnityEditor.ProBuilder
             return mode;
         }
 
-        /// <summary>
-        /// Test if SelectMode contains any of the value bits.
-        /// </summary>
-        /// <remarks>
-        /// HasFlag doesn't exist in .NET 3.5
-        /// </remarks>
-        /// <param name="target"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        internal static bool ContainsFlag(this SelectMode target, SelectMode value)
-        {
-            return (target & value) != SelectMode.None;
-        }
-
         internal static SelectMode GetSelectMode(EditLevel edit, ComponentMode component)
         {
             switch (edit)

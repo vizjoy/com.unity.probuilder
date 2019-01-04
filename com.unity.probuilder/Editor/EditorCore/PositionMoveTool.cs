@@ -114,18 +114,14 @@ namespace UnityEditor.ProBuilder
 
         void ApplyTranslation(Vector3 translation)
         {
-            foreach (var key in elementSelection)
+            foreach (var key in elementSelection.value)
             {
-                if (!(key is MeshAndPositions))
-                    continue;
-
-                var kvp = (MeshAndPositions)key;
-                var mesh = kvp.mesh;
+                var mesh = key.mesh;
                 var worldToLocal = mesh.transform.worldToLocalMatrix;
-                var origins = kvp.positions;
+                var origins = GetPositionOrigins(mesh);
                 var positions = mesh.positionsInternal;
 
-                foreach (var group in kvp.elementGroups)
+                foreach (var group in key.elementGroups)
                 {
                     var postApplyMatrix = GetPostApplyMatrix(group);
                     var preApplyMatrix = postApplyMatrix.inverse;

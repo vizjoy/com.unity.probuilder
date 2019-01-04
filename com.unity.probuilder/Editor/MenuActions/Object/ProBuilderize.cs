@@ -189,7 +189,7 @@ namespace UnityEditor.ProBuilder.Actions
             }
 
             UnityEditor.EditorUtility.ClearProgressBar();
-            MeshSelection.OnObjectSelectionChanged();
+            MeshSelection.SetObjectSelection();
             ProBuilderEditor.Refresh();
 
             if (i < 1)

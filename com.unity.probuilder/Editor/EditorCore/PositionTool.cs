@@ -1,5 +1,6 @@
 //#define DEBUG_HANDLES
 
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.ProBuilder;
@@ -14,29 +15,11 @@ namespace UnityEditor.ProBuilder
         Matrix4x4 m_CurrentDelta = Matrix4x4.identity;
 #endif
 
-        protected class MeshAndPositions : MeshAndElementSelection
+        Dictionary<ProBuilderMesh, Vector3[]> m_PositionOrigins = new Dictionary<ProBuilderMesh, Vector3[]>();
+
+        protected Vector3[] GetPositionOrigins(ProBuilderMesh mesh)
         {
-            Vector3[] m_Positions;
-
-            public Vector3[] positions
-            {
-                get { return m_Positions; }
-            }
-
-            public MeshAndPositions(ProBuilderMesh mesh, PivotPoint pivot, HandleOrientation orientation) : base(mesh, pivot, orientation, k_CollectCoincidentVertices)
-            {
-                m_Positions = mesh.positions.ToArray();
-
-                var l2w = mesh.transform.localToWorldMatrix;
-
-                for (int i = 0, c = m_Positions.Length; i < c; i++)
-                    m_Positions[i] = l2w.MultiplyPoint3x4(m_Positions[i]);
-            }
-        }
-
-        internal override MeshAndElementSelection GetElementSelection(ProBuilderMesh mesh, PivotPoint pivot, HandleOrientation orientation)
-        {
-            return new MeshAndPositions(mesh, pivot, orientation);
+            return m_PositionOrigins[mesh];
         }
 
         internal Matrix4x4 GetPostApplyMatrix(ElementGroup group)
@@ -57,15 +40,29 @@ namespace UnityEditor.ProBuilder
             }
         }
 
+        protected override void OnToolEngaged()
+        {
+            m_PositionOrigins.Clear();
+
+            foreach (var sel in elementSelection.value)
+            {
+                var mesh = sel.mesh;
+                var positions = mesh.positions.ToArray();
+                var l2w = mesh.transform.localToWorldMatrix;
+
+                for (int i = 0, c = positions.Length; i < c; i++)
+                    positions[i] = l2w.MultiplyPoint3x4(positions[i]);
+
+                m_PositionOrigins.Add(mesh, positions);
+            }
+        }
+
         protected override void DoTool(Vector3 handlePosition, Quaternion handleRotation)
         {
             if (isEditing && currentEvent.type == EventType.Repaint)
             {
-                foreach (var key in elementSelection)
+                foreach (var key in elementSelection.value)
                 {
-                    if (!(key is MeshAndPositions))
-                        break;
-
                     foreach (var group in key.elementGroups)
                     {
 #if DEBUG_HANDLES
@@ -102,18 +99,14 @@ namespace UnityEditor.ProBuilder
             m_CurrentDelta.SetColumn(3, delta.GetColumn(3));
 #endif
 
-            foreach (var key in elementSelection)
+            foreach (var selection in elementSelection.value)
             {
-                if (!(key is MeshAndPositions))
-                    continue;
-
-                var kvp = (MeshAndPositions)key;
-                var mesh = kvp.mesh;
+                var mesh = selection.mesh;
                 var worldToLocal = mesh.transform.worldToLocalMatrix;
-                var origins = kvp.positions;
+                var origins = m_PositionOrigins[mesh];
                 var positions = mesh.positionsInternal;
 
-                foreach (var group in kvp.elementGroups)
+                foreach (var group in selection.elementGroups)
                 {
                     var postApplyMatrix = GetPostApplyMatrix(group);
                     var preApplyMatrix = postApplyMatrix.inverse;

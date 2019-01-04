@@ -1,22 +1,18 @@
-using UnityEngine;
 using System.Linq;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using UnityEngine.ProBuilder;
 using UnityEngine.ProBuilder.MeshOperations;
 
-namespace UnityEditor.ProBuilder
+namespace UnityEngine.ProBuilder
 {
     /// <summary>
     /// Helper functions for working with Unity object selection and ProBuilder mesh element selections.
     /// </summary>
-    [InitializeOnLoad]
     public static class MeshSelection
     {
         static List<ProBuilderMesh> s_TopSelection = new List<ProBuilderMesh>();
         static ProBuilderMesh s_ActiveMesh;
         static List<MeshAndElementSelection> s_ElementSelection = new List<MeshAndElementSelection>();
-
         static bool s_TotalElementCountCacheIsDirty = true;
         static bool s_SelectedElementGroupsDirty = true;
         static Bounds s_SelectionBounds = new Bounds();
@@ -72,16 +68,6 @@ namespace UnityEditor.ProBuilder
         // Faces that need to be refreshed when moving or modifying the actual selection
         internal static Dictionary<ProBuilderMesh, List<Face>> selectedFacesInEditZone { get; private set; }
 
-        static ProBuilderMesh[] selection
-        {
-            get
-            {
-                return ProBuilderEditor.instance != null
-                    ? ProBuilderEditor.instance.selection
-                    : InternalUtility.GetComponents<ProBuilderMesh>(Selection.transforms);
-            }
-        }
-
         internal static void InvalidateElementSelection()
         {
             s_SelectedElementGroupsDirty = true;
@@ -98,10 +84,8 @@ namespace UnityEditor.ProBuilder
 
         static MeshSelection()
         {
-            Selection.selectionChanged += OnObjectSelectionChanged;
             ProBuilderMesh.elementSelectionChanged += ElementSelectionChanged;
-            EditorMeshUtility.meshOptimized += (x, y) => { s_TotalElementCountCacheIsDirty = true; };
-            OnObjectSelectionChanged();
+            SetObjectSelection();
         }
 
         /// <value>
@@ -117,37 +101,34 @@ namespace UnityEditor.ProBuilder
         /// </value>
         public static event System.Action objectSelectionChanged;
 
-        internal static void OnObjectSelectionChanged()
+        internal static void SetObjectSelection(GameObject[] gameObjects, GameObject active = null)
         {
             // GameObjects returns both parent and child when both are selected, where transforms only returns the top-most
             // transform.
             s_TopSelection.Clear();
             s_ElementSelection.Clear();
-            s_ActiveMesh = null;
-
-            var gameObjects = Selection.gameObjects;
 
             for (int i = 0, c = gameObjects.Length; i < c; i++)
             {
                 var mesh = gameObjects[i].GetComponent<ProBuilderMesh>();
 
                 if (mesh != null)
-                {
-                    if (gameObjects[i] == Selection.activeGameObject)
-                        s_ActiveMesh = mesh;
-
                     s_TopSelection.Add(mesh);
-                }
             }
+            
+            if (active != null)
+                s_ActiveMesh = active.GetComponent<ProBuilderMesh>();
+            else
+                s_ActiveMesh = s_TopSelection.LastOrDefault();
 
             selectedObjectCount = s_TopSelection.Count;
-            OnComponentSelectionChanged();
+            OnElementSelectionChanged();
 
             if (objectSelectionChanged != null)
                 objectSelectionChanged();
         }
 
-        internal static void OnComponentSelectionChanged()
+        internal static void OnElementSelectionChanged()
         {
             s_TotalElementCountCacheIsDirty = true;
             s_SelectedElementGroupsDirty = true;
@@ -186,8 +167,12 @@ namespace UnityEditor.ProBuilder
             {
                 foreach (var mesh in s_TopSelection)
                 {
-                    s_ElementSelection.Add(activeTool.GetElementSelection(mesh,
-                        VertexManipulationTool.pivotPoint, VertexManipulationTool.handleOrientation));
+                    s_ElementSelection.Add(
+                        activeTool.GetElementSelection(
+                            mesh,
+                            ProBuilderEditor.selectMode,
+                            VertexManipulationTool.pivotPoint,
+                            VertexManipulationTool.handleOrientation));
                 }
             }
         }
@@ -207,35 +192,6 @@ namespace UnityEditor.ProBuilder
                 selectedSharedVertexCountObjectMax = System.Math.Max(selectedSharedVertexCountObjectMax, mesh.selectedSharedVerticesCount);
                 selectedFaceCountObjectMax = System.Math.Max(selectedFaceCountObjectMax, mesh.selectedFaceCount);
                 selectedEdgeCountObjectMax = System.Math.Max(selectedEdgeCountObjectMax, mesh.selectedEdgeCount);
-            }
-        }
-
-        internal static void RecalculateSelectionBounds()
-        {
-            s_SelectionBounds = new Bounds();
-            var boundsInitialized = false;
-
-            for (var i = 0; i < selection.Length; i++)
-            {
-                var mesh = selection[i];
-
-                // Undo causes this state
-                if (mesh == null)
-                    return;
-
-                if (!boundsInitialized && mesh.selectedVertexCount > 0)
-                {
-                    boundsInitialized = true;
-                    s_SelectionBounds = new Bounds(mesh.transform.TransformPoint(mesh.positionsInternal[mesh.selectedIndexesInternal[0]]), Vector3.zero);
-                }
-
-                if (mesh.selectedVertexCount > 0)
-                {
-                    var shared = mesh.sharedVerticesInternal;
-
-                    foreach (var sharedVertex in mesh.selectedSharedVertices)
-                        s_SelectionBounds.Encapsulate(mesh.transform.TransformPoint(mesh.positionsInternal[shared[sharedVertex][0]]));
-                }
             }
         }
 

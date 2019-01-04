@@ -54,35 +54,41 @@ namespace UnityEngine.ProBuilder.RuntimeTests.Type
 						new VertexIndex(42),
 						new Face[0])).SetName("VertexIndex to Face");
 
-				yield return new TestCaseData(new SelectableConversionCase<Edge, VertexIndex>(
-					new Edge(0, 1),
-					new VertexIndex[] { 0, 1 })).SetName("Edge to Vertex");
-
-				yield return new TestCaseData(new SelectableConversionCase<Edge, Edge>(
-					new Edge(0, 1),
-					new Edge[] { new Edge(0, 1) })).SetName("Edge to Edge");
-
-				yield return new TestCaseData(new SelectableConversionCase<Edge, Face>(
-					new Edge(0, 1),
-					new Face[0])).SetName("Edge to Face");
-
-				yield return new TestCaseData(new SelectableConversionCase<Face, VertexIndex>(
-					face,
-					new VertexIndex[] { 0, 1, 2, 3 })).SetName("Face to Vertex");
-
-				yield return new TestCaseData(new SelectableConversionCase<Face, Edge>(
-					face,
-					new Edge[]
-					{
+				yield return new TestCaseData(
+					new SelectableConversionCase<Edge, VertexIndex>(
 						new Edge(0, 1),
-						new Edge(1, 3),
-						new Edge(2, 3),
-						new Edge(0, 2),
-					})).SetName("Face to Edge");
+						new VertexIndex[] { 0, 1 })).SetName("Edge to Vertex");
 
-				yield return new TestCaseData(new SelectableConversionCase<Face, Face>(
-					face,
-					new Face[] { face })).SetName("Face to Face");
+				yield return new TestCaseData(
+					new SelectableConversionCase<Edge, Edge>(
+						new Edge(0, 1),
+						new Edge[] { new Edge(0, 1) })).SetName("Edge to Edge");
+
+				yield return new TestCaseData(
+					new SelectableConversionCase<Edge, Face>(
+						new Edge(0, 1),
+						new Face[0])).SetName("Edge to Face");
+
+				yield return new TestCaseData(
+					new SelectableConversionCase<Face, VertexIndex>(
+						face,
+						new VertexIndex[] { 0, 1, 2, 3 })).SetName("Face to Vertex");
+
+				yield return new TestCaseData(
+					new SelectableConversionCase<Face, Edge>(
+						face,
+						new Edge[]
+						{
+							new Edge(0, 1),
+							new Edge(1, 3),
+							new Edge(2, 3),
+							new Edge(0, 2),
+						})).SetName("Face to Edge");
+
+				yield return new TestCaseData(
+					new SelectableConversionCase<Face, Face>(
+						face,
+						new Face[] { face })).SetName("Face to Face");
 			}
 		}
 
