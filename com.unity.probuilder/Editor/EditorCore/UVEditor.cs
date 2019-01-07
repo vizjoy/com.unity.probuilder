@@ -239,7 +239,7 @@ namespace UnityEditor.ProBuilder
             this.wantsMouseMove = true;
             this.autoRepaintOnSceneChange = true;
 
-            MeshSelection.objectSelectionChanged += ObjectSelectionChanged;
+            MeshSelectionOld.objectSelectionChanged += ObjectSelectionChanged;
             ProBuilderMesh.elementSelectionChanged += ElementSelectionChanged;
             ObjectSelectionChanged();
 
@@ -260,7 +260,7 @@ namespace UnityEditor.ProBuilder
             if (uv2Editor != null)
                 DestroyImmediate(uv2Editor);
 
-            MeshSelection.objectSelectionChanged -= ObjectSelectionChanged;
+            MeshSelectionOld.objectSelectionChanged -= ObjectSelectionChanged;
             ProBuilderMesh.elementSelectionChanged -= ElementSelectionChanged;
             ProBuilderMeshEditor.onGetFrameBoundsEvent -= OnGetFrameBoundsEvent;
         }
@@ -457,7 +457,7 @@ namespace UnityEditor.ProBuilder
 
         void ObjectSelectionChanged()
         {
-            selection = MeshSelection.top.ToArray();
+            selection = MeshSelectionOld.top.ToArray();
 
             SetSelectedUVsWithSceneView();
 
@@ -2133,7 +2133,7 @@ namespace UnityEditor.ProBuilder
         {
             needsRepaint = true;
 
-            if (selection == null || selection.Length < 1 || (editor && MeshSelection.selectedVertexCount < 1))
+            if (selection == null || selection.Length < 1 || (editor && MeshSelectionOld.selectedVertexCount < 1))
             {
                 SetCanvasCenter(Event.current.mousePosition - UVGraphCenter - uvGraphOffset);
                 return;
@@ -2315,8 +2315,8 @@ namespace UnityEditor.ProBuilder
             else
                 dragBounds = new Bounds2D(Vector2.zero, Vector2.zero);
 
-            selectedUVCount = MeshSelection.selectedVertexCount;
-            selectedFaceCount = MeshSelection.selectedFaceCount;
+            selectedUVCount = MeshSelectionOld.selectedVertexCount;
+            selectedFaceCount = MeshSelectionOld.selectedFaceCount;
 
             for (int i = 0; i < selection.Length; i++)
             {
@@ -2430,7 +2430,7 @@ namespace UnityEditor.ProBuilder
             }
 
             // figure out what the mode of selected faces is
-            if (MeshSelection.selectedFaceCount > 0)
+            if (MeshSelectionOld.selectedFaceCount > 0)
             {
                 // @todo write a more effecient method for this
                 List<bool> manual = new List<bool>();
@@ -2624,7 +2624,7 @@ namespace UnityEditor.ProBuilder
                     }
                 }
 
-                foreach (var kvp in MeshSelection.selectedFacesInEditZone)
+                foreach (var kvp in MeshSelectionOld.selectedFacesInEditZone)
                     kvp.Key.RefreshUV(kvp.Value);
 
                 RefreshSelectedUVCoordinates();

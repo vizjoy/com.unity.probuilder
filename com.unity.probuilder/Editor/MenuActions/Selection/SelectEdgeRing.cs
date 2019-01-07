@@ -49,19 +49,19 @@ namespace UnityEditor.ProBuilder.Actions
 
         public override bool enabled
         {
-            get { return base.enabled && MeshSelection.selectedEdgeCount > 0; }
+            get { return base.enabled && MeshSelectionOld.selectedEdgeCount > 0; }
         }
 
         public override ActionResult DoAction()
         {
-            if (MeshSelection.selectedObjectCount < 1)
+            if (MeshSelectionOld.selectedObjectCount < 1)
                 return ActionResult.NoSelection;
 
             UndoUtility.RecordSelection("Select Edge Ring");
 
             bool success = false;
 
-            foreach (var mesh in MeshSelection.topInternal)
+            foreach (var mesh in MeshSelectionOld.topInternal)
             {
                 Edge[] edges = ElementSelection.GetEdgeRing(mesh, mesh.selectedEdges).ToArray();
 

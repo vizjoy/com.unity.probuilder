@@ -42,7 +42,7 @@ namespace UnityEditor.ProBuilder.Actions
 
         public override bool enabled
         {
-            get { return base.enabled && MeshSelection.selectedVertexCount > 0; }
+            get { return base.enabled && MeshSelectionOld.selectedVertexCount > 0; }
         }
 
         protected override MenuActionState optionsMenuState
@@ -81,7 +81,7 @@ namespace UnityEditor.ProBuilder.Actions
 
             HashSet<Color32> colors = new HashSet<Color32>();
 
-            foreach (ProBuilderMesh pb in MeshSelection.topInternal)
+            foreach (ProBuilderMesh pb in MeshSelectionOld.topInternal)
             {
                 Color[] mesh_colors = pb.colorsInternal;
 
@@ -98,7 +98,7 @@ namespace UnityEditor.ProBuilder.Actions
             IEnumerable<ProBuilderMesh> pool;
 
             if (selectionOnly)
-                pool = MeshSelection.topInternal;
+                pool = MeshSelectionOld.topInternal;
             else
                 pool = Object.FindObjectsOfType<ProBuilderMesh>();
 

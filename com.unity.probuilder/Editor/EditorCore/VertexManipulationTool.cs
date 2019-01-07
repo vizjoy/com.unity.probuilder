@@ -66,7 +66,7 @@ namespace UnityEditor.ProBuilder
             if (Tools.pivotMode != unity)
             {
                 s_PivotPoint.SetValue(Tools.pivotMode == PivotMode.Center ? PivotPoint.Center : s_PivotModePivotEquivalent.value, true);
-                MeshSelection.InvalidateElementSelection();
+                MeshSelectionOld.InvalidateElementSelection();
             }
         }
 
@@ -89,7 +89,7 @@ namespace UnityEditor.ProBuilder
                         ? PivotRotation.Local
                         : PivotRotation.Global;
 
-                MeshSelection.InvalidateElementSelection();
+                MeshSelectionOld.InvalidateElementSelection();
 
                 var toolbar = typeof(EditorWindow).Assembly.GetType("UnityEditor.Toolbar");
                 var repaint = toolbar.GetMethod("RepaintToolbar", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
@@ -106,7 +106,7 @@ namespace UnityEditor.ProBuilder
                     ? HandleOrientation.World
                     : HandleOrientation.ActiveObject);
                 s_PivotRotation = Tools.pivotRotation;
-                MeshSelection.InvalidateElementSelection();
+                MeshSelectionOld.InvalidateElementSelection();
                 return;
             }
 
@@ -121,7 +121,7 @@ namespace UnityEditor.ProBuilder
                             ? HandleOrientation.World
                             : HandleOrientation.ActiveObject,
                         true);
-                    MeshSelection.InvalidateElementSelection();
+                    MeshSelectionOld.InvalidateElementSelection();
                 }
             }
         }
@@ -158,7 +158,7 @@ namespace UnityEditor.ProBuilder
             {
                 // todo DON'T SPAM THIS
                 return VertexManipulationToolSelection.GetVertexManipulationToolSelection(
-                    MeshSelection.top,
+                    MeshSelectionOld.top,
                     ProBuilderEditor.selectMode,
                     pivotPoint,
                     handleOrientation,
@@ -238,8 +238,8 @@ namespace UnityEditor.ProBuilder
 
             if (!m_IsEditing)
             {
-                m_HandlePosition = MeshSelection.GetHandlePosition();
-                m_HandleRotation = MeshSelection.GetHandleRotation();
+                m_HandlePosition = MeshSelectionOld.GetHandlePosition();
+                m_HandleRotation = MeshSelectionOld.GetHandleRotation();
 
                 m_HandlePositionOrigin = m_HandlePosition;
                 m_HandleRotationOrigin = m_HandleRotation;
@@ -263,7 +263,7 @@ namespace UnityEditor.ProBuilder
             // Disable iterative lightmapping
             Lightmapping.PushGIWorkflowMode();
 
-            var selection = MeshSelection.topInternal.ToArray();
+            var selection = MeshSelectionOld.topInternal.ToArray();
 
             UndoUtility.RegisterCompleteObjectUndo(selection, string.IsNullOrEmpty(undoMessage) ? "Modify Vertices" : undoMessage);
 
@@ -297,7 +297,7 @@ namespace UnityEditor.ProBuilder
 
             OnToolDisengaged();
 
-            var selection = MeshSelection.topInternal.ToArray();
+            var selection = MeshSelectionOld.topInternal.ToArray();
 
             foreach (var mesh in selection)
             {
@@ -318,7 +318,7 @@ namespace UnityEditor.ProBuilder
         {
             int ef = 0;
 
-            var selection = MeshSelection.topInternal;
+            var selection = MeshSelectionOld.topInternal;
             var selectMode = ProBuilderEditor.selectMode;
 
             foreach (var mesh in selection)

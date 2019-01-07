@@ -29,9 +29,9 @@ namespace UnityEditor.ProBuilder.Actions
         {
             get
             {
-                return base.enabled && (MeshSelection.selectedVertexCount > 1
-                                        || MeshSelection.selectedEdgeCount > 1
-                                        || MeshSelection.selectedFaceCount > 1);
+                return base.enabled && (MeshSelectionOld.selectedVertexCount > 1
+                                        || MeshSelectionOld.selectedEdgeCount > 1
+                                        || MeshSelectionOld.selectedFaceCount > 1);
             }
         }
 

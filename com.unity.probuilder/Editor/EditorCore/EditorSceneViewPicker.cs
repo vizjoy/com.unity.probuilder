@@ -35,7 +35,7 @@ namespace UnityEditor.ProBuilder
             bool appendModifier = EditorHandleUtility.IsAppendModifier(evt.modifiers);
 
             if (!appendModifier)
-                MeshSelection.SetSelection((GameObject)null);
+                MeshSelectionOld.SetSelection((GameObject)null);
 
             float pickedElementDistance = Mathf.Infinity;
 
@@ -51,14 +51,14 @@ namespace UnityEditor.ProBuilder
             if (pickedElementDistance > pickerPreferences.maxPointerDistance)
             {
                 if (appendModifier && Selection.gameObjects.Contains(s_Selection.gameObject))
-                    MeshSelection.RemoveFromSelection(s_Selection.gameObject);
+                    MeshSelectionOld.RemoveFromSelection(s_Selection.gameObject);
                 else
-                    MeshSelection.AddToSelection(s_Selection.gameObject);
+                    MeshSelectionOld.AddToSelection(s_Selection.gameObject);
 
                 return null;
             }
 
-            MeshSelection.AddToSelection(s_Selection.gameObject);
+            MeshSelectionOld.AddToSelection(s_Selection.gameObject);
 
             if (s_Selection.mesh != null)
             {
@@ -129,7 +129,7 @@ namespace UnityEditor.ProBuilder
             bool isAppendModifier = EditorHandleUtility.IsAppendModifier(Event.current.modifiers);
 
             if (!isAppendModifier)
-                MeshSelection.ClearElementSelection();
+                MeshSelectionOld.ClearElementSelection();
 
             bool elementsInDragRect = false;
 
@@ -141,7 +141,7 @@ namespace UnityEditor.ProBuilder
                     Dictionary<ProBuilderMesh, HashSet<int>> selected = SelectionPicker.PickVerticesInRect(
                             SceneView.lastActiveSceneView.camera,
                             mouseDragRect,
-                            MeshSelection.topInternal,
+                            MeshSelectionOld.topInternal,
                             pickingOptions,
                             EditorGUIUtility.pixelsPerPoint);
 
@@ -180,7 +180,7 @@ namespace UnityEditor.ProBuilder
                     Dictionary<ProBuilderMesh, HashSet<Face>> selected = SelectionPicker.PickFacesInRect(
                             SceneView.lastActiveSceneView.camera,
                             mouseDragRect,
-                            MeshSelection.topInternal,
+                            MeshSelectionOld.topInternal,
                             pickingOptions,
                             EditorGUIUtility.pixelsPerPoint);
 
@@ -217,7 +217,7 @@ namespace UnityEditor.ProBuilder
                     var selected = SelectionPicker.PickEdgesInRect(
                             SceneView.lastActiveSceneView.camera,
                             mouseDragRect,
-                            MeshSelection.topInternal,
+                            MeshSelectionOld.topInternal,
                             pickingOptions,
                             EditorGUIUtility.pixelsPerPoint);
 
@@ -254,7 +254,7 @@ namespace UnityEditor.ProBuilder
 
             // if nothing was selected in the drag rect, clear the object selection too
             if (!elementsInDragRect && !isAppendModifier)
-                MeshSelection.ClearElementAndObjectSelection();
+                MeshSelectionOld.ClearElementAndObjectSelection();
 
             ProBuilderEditor.Refresh();
             SceneView.RepaintAll();
@@ -310,7 +310,7 @@ namespace UnityEditor.ProBuilder
                 var mesh = go.GetComponent<ProBuilderMesh>();
                 Face face = null;
 
-                if (mesh != null && (allowUnselected || MeshSelection.topInternal.Contains(mesh)))
+                if (mesh != null && (allowUnselected || MeshSelectionOld.topInternal.Contains(mesh)))
                 {
                     Ray ray = UHandleUtility.GUIPointToWorldRay(mousePosition);
                     RaycastHit hit;
@@ -388,7 +388,7 @@ namespace UnityEditor.ProBuilder
             {
                 var mesh = selection.gameObject.GetComponent<ProBuilderMesh>();
 
-                if (mesh != null && mesh.selectable && !MeshSelection.Contains(mesh))
+                if (mesh != null && mesh.selectable && !MeshSelectionOld.Contains(mesh))
                 {
                     var matches = GetNearestVertices(mesh, mousePosition, s_NearestVertices, maxDistance);
 
@@ -408,7 +408,7 @@ namespace UnityEditor.ProBuilder
 
             if (selection.mesh == null)
             {
-                foreach (var mesh in MeshSelection.topInternal)
+                foreach (var mesh in MeshSelectionOld.topInternal)
                 {
                     if (!mesh.selectable)
                         continue;
@@ -477,7 +477,7 @@ namespace UnityEditor.ProBuilder
 
             float bestDistance = pickerPrefs.maxPointerDistance;
             float unselectedBestDistance = bestDistance;
-            bool hoveredIsInSelection = MeshSelection.topInternal.Contains(hoveredMesh);
+            bool hoveredIsInSelection = MeshSelectionOld.topInternal.Contains(hoveredMesh);
 
             if (hoveredMesh != null && (allowUnselected || hoveredIsInSelection))
             {
@@ -496,7 +496,7 @@ namespace UnityEditor.ProBuilder
                 }
             }
 
-            foreach (var mesh in MeshSelection.topInternal)
+            foreach (var mesh in MeshSelectionOld.topInternal)
             {
                 var trs = mesh.transform;
                 var positions = mesh.positionsInternal;

@@ -43,7 +43,7 @@ namespace UnityEditor.ProBuilder.Actions
 
         public override bool enabled
         {
-            get { return base.enabled && MeshSelection.selectedVertexCountObjectMax > 1; }
+            get { return base.enabled && MeshSelectionOld.selectedVertexCountObjectMax > 1; }
         }
 
         protected override MenuActionState optionsMenuState
@@ -72,7 +72,7 @@ namespace UnityEditor.ProBuilder.Actions
 
         public override ActionResult DoAction()
         {
-            if (MeshSelection.selectedObjectCount < 1)
+            if (MeshSelectionOld.selectedObjectCount < 1)
                 return ActionResult.NoSelection;
 
             bool success = false;
@@ -81,7 +81,7 @@ namespace UnityEditor.ProBuilder.Actions
 
             UndoUtility.RecordSelection("Collapse Vertices");
 
-            foreach (var mesh in MeshSelection.topInternal)
+            foreach (var mesh in MeshSelectionOld.topInternal)
             {
                 if (mesh.selectedIndexesInternal.Length > 1)
                 {

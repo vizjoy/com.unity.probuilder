@@ -40,7 +40,7 @@ namespace UnityEditor.ProBuilder.Actions
 
         public override bool enabled
         {
-            get { return base.enabled && MeshSelection.selectedSharedVertexCountObjectMax > 1; }
+            get { return base.enabled && MeshSelectionOld.selectedSharedVertexCountObjectMax > 1; }
         }
 
         protected override MenuActionState optionsMenuState
@@ -71,7 +71,7 @@ namespace UnityEditor.ProBuilder.Actions
 
         public override ActionResult DoAction()
         {
-            if (MeshSelection.selectedObjectCount < 1)
+            if (MeshSelectionOld.selectedObjectCount < 1)
                 return ActionResult.NoSelection;
 
             ActionResult res = ActionResult.NoSelection;
@@ -80,7 +80,7 @@ namespace UnityEditor.ProBuilder.Actions
 
             int weldCount = 0;
 
-            foreach (ProBuilderMesh mesh in MeshSelection.topInternal)
+            foreach (ProBuilderMesh mesh in MeshSelectionOld.topInternal)
             {
                 weldCount += mesh.sharedVerticesInternal.Length;
 

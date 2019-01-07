@@ -31,12 +31,12 @@ namespace UnityEditor.ProBuilder.Actions
 
         public override bool enabled
         {
-            get { return base.enabled && MeshSelection.selectedObjectCount > 0; }
+            get { return base.enabled && MeshSelectionOld.selectedObjectCount > 0; }
         }
 
         public override ActionResult DoAction()
         {
-            foreach (ProBuilderMesh pb in MeshSelection.topInternal)
+            foreach (ProBuilderMesh pb in MeshSelectionOld.topInternal)
             {
                 var existing = pb.GetComponents<EntityBehaviour>();
 
@@ -61,7 +61,7 @@ namespace UnityEditor.ProBuilder.Actions
                 Undo.AddComponent<ColliderBehaviour>(pb.gameObject).Initialize();
             }
 
-            int selectionCount = MeshSelection.selectedObjectCount;
+            int selectionCount = MeshSelectionOld.selectedObjectCount;
 
             if (selectionCount < 1)
                 return new ActionResult(ActionResult.Status.NoChange, "Set Collider\nNo objects selected");

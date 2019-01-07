@@ -37,18 +37,18 @@ namespace UnityEditor.ProBuilder.Actions
 
         public override bool enabled
         {
-            get { return base.enabled && MeshSelection.selectedVertexCount > 0; }
+            get { return base.enabled && MeshSelectionOld.selectedVertexCount > 0; }
         }
 
         public override ActionResult DoAction()
         {
-            if (MeshSelection.selectedObjectCount < 1)
+            if (MeshSelectionOld.selectedObjectCount < 1)
                 return ActionResult.NoSelection;
 
             int splitCount = 0;
             UndoUtility.RecordSelection("Split Vertices");
 
-            foreach (ProBuilderMesh mesh in MeshSelection.topInternal)
+            foreach (ProBuilderMesh mesh in MeshSelectionOld.topInternal)
             {
                 // loose verts to split
                 List<int> tris = new List<int>(mesh.selectedIndexesInternal);

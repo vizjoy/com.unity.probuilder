@@ -54,14 +54,14 @@ namespace UnityEditor.ProBuilder
 
         internal static void RecordSelection(string message)
         {
-            RecordSelection(MeshSelection.topInternal.ToArray(), message);
+            RecordSelection(MeshSelectionOld.topInternal.ToArray(), message);
         }
 
         internal static void RecordMeshAndTransformSelection(string message)
         {
-            var count = MeshSelection.selectedObjectCount;
+            var count = MeshSelectionOld.selectedObjectCount;
             var res = new Object[count * 2];
-            var selection = MeshSelection.topInternal;
+            var selection = MeshSelectionOld.topInternal;
 
             for (int i = 0, c = count; i < c; i++)
             {

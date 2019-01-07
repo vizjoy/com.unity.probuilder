@@ -36,19 +36,19 @@ namespace UnityEditor.ProBuilder.Actions
 
         public override bool enabled
         {
-            get { return base.enabled && MeshSelection.topInternal.Any(x => x.selectedEdgeCount == 2); }
+            get { return base.enabled && MeshSelectionOld.topInternal.Any(x => x.selectedEdgeCount == 2); }
         }
 
         public override ActionResult DoAction()
         {
-            if (MeshSelection.selectedObjectCount < 1)
+            if (MeshSelectionOld.selectedObjectCount < 1)
                 return ActionResult.NoSelection;
 
             UndoUtility.RecordSelection("Bridge Edges");
 
             bool success = false;
 
-            foreach (var mesh in MeshSelection.topInternal)
+            foreach (var mesh in MeshSelectionOld.topInternal)
             {
                 if (mesh.selectedEdgeCount == 2)
                 {

@@ -46,7 +46,7 @@ namespace UnityEditor.ProBuilder
              PreferenceKeys.menuVertexColors)]
         public static bool VerifyApplyVertexColor()
         {
-            return ProBuilderEditor.instance != null && MeshSelection.selectedVertexCount > 0;
+            return ProBuilderEditor.instance != null && MeshSelectionOld.selectedVertexCount > 0;
         }
 
         [MenuItem("Tools/" + PreferenceKeys.pluginTitle + "/Vertex Colors/Set Selected Faces to Preset 1 &#1", false,

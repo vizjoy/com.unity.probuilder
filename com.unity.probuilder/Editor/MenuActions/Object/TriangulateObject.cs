@@ -19,17 +19,17 @@ namespace UnityEditor.ProBuilder.Actions
 
         public override bool enabled
         {
-            get { return base.enabled && MeshSelection.selectedObjectCount > 0; }
+            get { return base.enabled && MeshSelectionOld.selectedObjectCount > 0; }
         }
 
         public override ActionResult DoAction()
         {
-            if (MeshSelection.selectedObjectCount < 1)
+            if (MeshSelectionOld.selectedObjectCount < 1)
                 return ActionResult.NoSelection;
 
             UndoUtility.RecordSelection("Triangulate Objects");
 
-            foreach (var mesh in MeshSelection.topInternal)
+            foreach (var mesh in MeshSelectionOld.topInternal)
             {
                 mesh.ToMesh();
                 mesh.ToTriangles(mesh.facesInternal);
@@ -40,7 +40,7 @@ namespace UnityEditor.ProBuilder.Actions
 
             ProBuilderEditor.Refresh();
 
-            var c = MeshSelection.selectedObjectCount;
+            var c = MeshSelectionOld.selectedObjectCount;
             return new ActionResult(ActionResult.Status.Success, "Triangulate " + c + (c > 1 ? " Objects" : " Object"));
         }
     }

@@ -53,7 +53,7 @@ namespace UnityEditor.ProBuilder
                 }
 
                 mesh.mesh.vertices = positions;
-                mesh.RefreshUV(MeshSelection.selectedFacesInEditZone[mesh]);
+                mesh.RefreshUV(MeshSelectionOld.selectedFacesInEditZone[mesh]);
                 mesh.Refresh(RefreshMask.Normals);
             }
 

@@ -48,7 +48,7 @@ namespace UnityEditor.ProBuilder.Actions
                 if(ProGridsInterface.GetPivot(out pivot))
                     go.transform.position = pivot;
             }
-            MeshSelection.SetSelection(go);
+            MeshSelectionOld.SetSelection(go);
             UndoUtility.RegisterCreatedObjectUndo(go, "Create Poly Shape");
             poly.polyEditMode = PolyShape.PolyEditMode.Path;
 

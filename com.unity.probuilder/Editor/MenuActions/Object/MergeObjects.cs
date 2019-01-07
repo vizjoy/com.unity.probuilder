@@ -34,16 +34,16 @@ namespace UnityEditor.ProBuilder.Actions
 
         public override bool enabled
         {
-            get { return base.enabled && MeshSelection.selectedObjectCount > 1; }
+            get { return base.enabled && MeshSelectionOld.selectedObjectCount > 1; }
         }
 
         public override ActionResult DoAction()
         {
-            if (MeshSelection.selectedObjectCount < 2)
+            if (MeshSelectionOld.selectedObjectCount < 2)
                 return new ActionResult(ActionResult.Status.Canceled, "Must Select 2+ Objects");
 
-            var selected = MeshSelection.top.ToArray();
-            List<ProBuilderMesh> res = InternalMeshUtility.CombineObjects(MeshSelection.topInternal);
+            var selected = MeshSelectionOld.top.ToArray();
+            List<ProBuilderMesh> res = InternalMeshUtility.CombineObjects(MeshSelectionOld.topInternal);
 
             if (res != null)
             {

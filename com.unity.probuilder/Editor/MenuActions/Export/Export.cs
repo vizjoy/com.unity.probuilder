@@ -151,7 +151,7 @@ namespace UnityEditor.ProBuilder.Actions
         {
             string res = null;
 
-            IEnumerable<ProBuilderMesh> meshes = m_ExportRecursive ? MeshSelection.deep : MeshSelection.topInternal;
+            IEnumerable<ProBuilderMesh> meshes = m_ExportRecursive ? MeshSelectionOld.deep : MeshSelectionOld.topInternal;
 
             if (meshes == null || !meshes.Any())
             {

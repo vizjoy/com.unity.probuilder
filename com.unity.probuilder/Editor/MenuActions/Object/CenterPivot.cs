@@ -29,25 +29,25 @@ namespace UnityEditor.ProBuilder.Actions
 
         public override bool enabled
         {
-            get { return base.enabled && MeshSelection.selectedObjectCount > 0; }
+            get { return base.enabled && MeshSelectionOld.selectedObjectCount > 0; }
         }
 
         public override ActionResult DoAction()
         {
-            if (MeshSelection.selectedObjectCount < 1)
+            if (MeshSelectionOld.selectedObjectCount < 1)
                 return ActionResult.NoSelection;
 
-            Object[] objects = new Object[MeshSelection.selectedObjectCount * 2];
+            Object[] objects = new Object[MeshSelectionOld.selectedObjectCount * 2];
 
-            for (int i = 0, c = MeshSelection.selectedObjectCount; i < c; i++)
+            for (int i = 0, c = MeshSelectionOld.selectedObjectCount; i < c; i++)
             {
-                objects[i] = MeshSelection.topInternal[i];
-                objects[i + c] = MeshSelection.topInternal[i].transform;
+                objects[i] = MeshSelectionOld.topInternal[i];
+                objects[i + c] = MeshSelectionOld.topInternal[i].transform;
             }
 
             UndoUtility.RegisterCompleteObjectUndo(objects, "Center Pivot");
 
-            foreach (var mesh in MeshSelection.topInternal)
+            foreach (var mesh in MeshSelectionOld.topInternal)
             {
                 TransformUtility.UnparentChildren(mesh.transform);
                 mesh.CenterPivot(null);

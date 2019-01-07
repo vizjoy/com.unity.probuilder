@@ -31,28 +31,28 @@ namespace UnityEditor.ProBuilder.Actions
         {
             get
             {
-                return base.enabled && (MeshSelection.selectedVertexCount > 0
-                                        || MeshSelection.selectedEdgeCount > 0
-                                        || MeshSelection.selectedFaceCount > 0);
+                return base.enabled && (MeshSelectionOld.selectedVertexCount > 0
+                                        || MeshSelectionOld.selectedEdgeCount > 0
+                                        || MeshSelectionOld.selectedFaceCount > 0);
             }
         }
 
         public override ActionResult DoAction()
         {
-            if (MeshSelection.selectedObjectCount < 1)
+            if (MeshSelectionOld.selectedObjectCount < 1)
                 return ActionResult.NoSelection;
 
-            Object[] objects = new Object[MeshSelection.selectedObjectCount * 2];
+            Object[] objects = new Object[MeshSelectionOld.selectedObjectCount * 2];
 
-            for (int i = 0, c = MeshSelection.selectedObjectCount; i < c; i++)
+            for (int i = 0, c = MeshSelectionOld.selectedObjectCount; i < c; i++)
             {
-                objects[i] = MeshSelection.topInternal[i];
-                objects[i + c] = MeshSelection.topInternal[i].transform;
+                objects[i] = MeshSelectionOld.topInternal[i];
+                objects[i + c] = MeshSelectionOld.topInternal[i].transform;
             }
 
             UndoUtility.RegisterCompleteObjectUndo(objects, "Set Pivot");
 
-            foreach (var mesh in MeshSelection.topInternal)
+            foreach (var mesh in MeshSelectionOld.topInternal)
             {
                 TransformUtility.UnparentChildren(mesh.transform);
                 mesh.CenterPivot(mesh.selectedIndexesInternal);

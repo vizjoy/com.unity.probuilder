@@ -41,7 +41,7 @@ namespace UnityEditor.ProBuilder.Actions
 
         public override bool enabled
         {
-            get { return base.enabled && MeshSelection.selectedObjectCount > 0; }
+            get { return base.enabled && MeshSelectionOld.selectedObjectCount > 0; }
         }
 
         protected override MenuActionState optionsMenuState
@@ -93,10 +93,10 @@ namespace UnityEditor.ProBuilder.Actions
 
             List<GameObject> res  = new List<GameObject>();
 
-            foreach (ProBuilderMesh pb in MeshSelection.topInternal)
+            foreach (ProBuilderMesh pb in MeshSelectionOld.topInternal)
                 res.Add(Mirror(pb, scale, duplicate).gameObject);
 
-            MeshSelection.SetSelection(res);
+            MeshSelectionOld.SetSelection(res);
 
             ProBuilderEditor.Refresh();
 

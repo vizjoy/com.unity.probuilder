@@ -27,14 +27,14 @@ namespace UnityEditor.ProBuilder.Actions
 
         public override bool enabled
         {
-            get { return base.enabled && MeshSelection.selectedFaceCountObjectMax > 1; }
+            get { return base.enabled && MeshSelectionOld.selectedFaceCountObjectMax > 1; }
         }
 
         public override ActionResult DoAction()
         {
-            var selection = MeshSelection.topInternal;
+            var selection = MeshSelectionOld.topInternal;
 
-            UndoUtility.RecordSelection("Conform " + (MeshSelection.selectedFaceCount > 0 ? "Face" : "Object") + " Normals.");
+            UndoUtility.RecordSelection("Conform " + (MeshSelectionOld.selectedFaceCount > 0 ? "Face" : "Object") + " Normals.");
 
             ActionResult res = ActionResult.NoSelection;
 

@@ -19,12 +19,12 @@ namespace UnityEditor.ProBuilder
 
         void OnEnable()
         {
-            MeshSelection.objectSelectionChanged += OnSelectionChanged;
+            MeshSelectionOld.objectSelectionChanged += OnSelectionChanged;
         }
 
         void OnDisable()
         {
-            MeshSelection.objectSelectionChanged -= OnSelectionChanged;
+            MeshSelectionOld.objectSelectionChanged -= OnSelectionChanged;
         }
 
         void OnSelectionChanged()
@@ -38,7 +38,7 @@ namespace UnityEditor.ProBuilder
 
             m_Scroll = EditorGUILayout.BeginScrollView(m_Scroll);
 
-            foreach (var mesh in MeshSelection.top)
+            foreach (var mesh in MeshSelectionOld.top)
             {
                 DoMeshInfo(mesh);
             }

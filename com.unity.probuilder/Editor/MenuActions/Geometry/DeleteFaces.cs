@@ -35,19 +35,19 @@ namespace UnityEditor.ProBuilder.Actions
 
         public override bool enabled
         {
-            get { return base.enabled && MeshSelection.selectedFaceCount > 0; }
+            get { return base.enabled && MeshSelectionOld.selectedFaceCount > 0; }
         }
 
         public override ActionResult DoAction()
         {
-            if (MeshSelection.selectedObjectCount < 1)
+            if (MeshSelectionOld.selectedObjectCount < 1)
                 return ActionResult.NoSelection;
 
             UndoUtility.RecordSelection("Delete Face");
 
             int count = 0;
 
-            foreach (ProBuilderMesh pb in MeshSelection.topInternal)
+            foreach (ProBuilderMesh pb in MeshSelectionOld.topInternal)
             {
                 if (pb.selectedFaceCount == pb.facesInternal.Length)
                 {
@@ -63,7 +63,7 @@ namespace UnityEditor.ProBuilder.Actions
                 pb.Optimize();
             }
 
-            MeshSelection.ClearElementSelection();
+            MeshSelectionOld.ClearElementSelection();
             ProBuilderEditor.Refresh();
 
             if (count > 0)

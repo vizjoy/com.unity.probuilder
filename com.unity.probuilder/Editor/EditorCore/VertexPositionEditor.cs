@@ -198,7 +198,7 @@ namespace UnityEditor.ProBuilder
 
                             if (ProBuilderEditor.instance != null)
                             {
-                                pb.RefreshUV(MeshSelection.selectedFacesInEditZone[pb]);
+                                pb.RefreshUV(MeshSelectionOld.selectedFacesInEditZone[pb]);
                                 pb.Refresh(RefreshMask.Normals);
                                 pb.mesh.RecalculateBounds();
                                 ProBuilderEditor.Refresh();

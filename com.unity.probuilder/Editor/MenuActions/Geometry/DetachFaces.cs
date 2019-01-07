@@ -27,7 +27,7 @@ namespace UnityEditor.ProBuilder.Actions
 
         public override bool enabled
         {
-            get { return base.enabled && MeshSelection.selectedFaceCount > 0; }
+            get { return base.enabled && MeshSelectionOld.selectedFaceCount > 0; }
         }
 
         protected override MenuActionState optionsMenuState
@@ -62,7 +62,7 @@ namespace UnityEditor.ProBuilder.Actions
 
         public override ActionResult DoAction()
         {
-            if (MeshSelection.selectedObjectCount < 1)
+            if (MeshSelectionOld.selectedObjectCount < 1)
                 return ActionResult.NoSelection;
 
             UndoUtility.RecordSelection("Detach Face(s)");
@@ -77,7 +77,7 @@ namespace UnityEditor.ProBuilder.Actions
         {
             int count = 0;
 
-            foreach (ProBuilderMesh pb in MeshSelection.topInternal)
+            foreach (ProBuilderMesh pb in MeshSelectionOld.topInternal)
             {
                 pb.ToMesh();
                 List<Face> res = pb.DetachFaces(pb.selectedFacesInternal);
@@ -102,7 +102,7 @@ namespace UnityEditor.ProBuilder.Actions
             int detachedFaceCount = 0;
             List<GameObject> detached = new List<GameObject>();
 
-            foreach (ProBuilderMesh mesh in MeshSelection.topInternal)
+            foreach (ProBuilderMesh mesh in MeshSelectionOld.topInternal)
             {
                 if (mesh.selectedFaceCount < 1 || mesh.selectedFaceCount == mesh.facesInternal.Length)
                     continue;
@@ -156,7 +156,7 @@ namespace UnityEditor.ProBuilder.Actions
                 detached.Add(copy.gameObject);
             }
 
-            MeshSelection.SetSelection(detached.ToArray());
+            MeshSelectionOld.SetSelection(detached.ToArray());
             ProBuilderEditor.Refresh();
 
             if (detachedFaceCount > 0)

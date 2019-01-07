@@ -27,7 +27,7 @@ namespace UnityEditor.ProBuilder.Actions
 
         public override bool enabled
         {
-            get { return base.enabled && MeshSelection.selectedEdgeCount > 0; }
+            get { return base.enabled && MeshSelectionOld.selectedEdgeCount > 0; }
         }
 
         protected override MenuActionState optionsMenuState
@@ -63,7 +63,7 @@ namespace UnityEditor.ProBuilder.Actions
 
             UndoUtility.RecordSelection("Bevel Edges");
 
-            foreach (ProBuilderMesh pb in MeshSelection.topInternal)
+            foreach (ProBuilderMesh pb in MeshSelectionOld.topInternal)
             {
                 pb.ToMesh();
 

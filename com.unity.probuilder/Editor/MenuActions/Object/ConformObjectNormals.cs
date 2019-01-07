@@ -33,7 +33,7 @@ namespace UnityEditor.ProBuilder.Actions
 
         public override bool enabled
         {
-            get { return base.enabled && MeshSelection.selectedObjectCount > 0; }
+            get { return base.enabled && MeshSelectionOld.selectedObjectCount > 0; }
         }
 
         public override ActionResult DoAction()
@@ -42,7 +42,7 @@ namespace UnityEditor.ProBuilder.Actions
 
             ActionResult res = ActionResult.NoSelection;
 
-            foreach (ProBuilderMesh pb in MeshSelection.topInternal)
+            foreach (ProBuilderMesh pb in MeshSelectionOld.topInternal)
             {
                 res = UnityEngine.ProBuilder.MeshOperations.SurfaceTopology.ConformNormals(pb, pb.faces);
 

@@ -15,12 +15,12 @@ namespace UnityEditor.ProBuilder.Actions
 
         public ProBuilderize()
         {
-            MeshSelection.objectSelectionChanged += () =>
+            MeshSelectionOld.objectSelectionChanged += () =>
                 {
                     // can't just check if any MeshFilter is present because we need to know whether or not it's already a
                     // probuilder mesh
                     int meshCount = Selection.transforms.SelectMany(x => x.GetComponentsInChildren<MeshFilter>()).Count();
-                    m_Enabled = meshCount > 0 && meshCount != MeshSelection.selectedObjectCount;
+                    m_Enabled = meshCount > 0 && meshCount != MeshSelectionOld.selectedObjectCount;
                 };
         }
 
@@ -189,7 +189,7 @@ namespace UnityEditor.ProBuilder.Actions
             }
 
             UnityEditor.EditorUtility.ClearProgressBar();
-            MeshSelection.SetObjectSelection();
+            MeshSelectionOld.SetObjectSelection(Selection.gameObjects);
             ProBuilderEditor.Refresh();
 
             if (i < 1)

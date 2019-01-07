@@ -194,7 +194,7 @@ namespace UnityEditor.ProBuilder
                             ? mesh.GetCoincidentVertices(mesh.selectedIndexesInternal)
                             : new List<int>(mesh.selectedIndexesInternal);
 
-                        var position = MeshSelection.bounds.center;
+                        var position = MeshSelectionOld.bounds.center;
                         var rotation = Quaternion.identity;
 
                         if (selectMode.ContainsFlag(SelectMode.Face | SelectMode.TextureFace))

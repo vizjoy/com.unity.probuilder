@@ -93,7 +93,7 @@ Grow by angle is enabled by Option + Clicking the <b>Grow Selection</b> button."
 
         public override ActionResult DoAction()
         {
-            if (MeshSelection.selectedObjectCount < 1)
+            if (MeshSelectionOld.selectedObjectCount < 1)
                 return ActionResult.NoSelection;
 
             UndoUtility.RecordSelection("Grow Selection");
@@ -161,18 +161,18 @@ Grow by angle is enabled by Option + Clicking the <b>Grow Selection</b> button."
             switch (ProBuilderEditor.selectMode)
             {
                 case SelectMode.Face:
-                    sel = MeshSelection.selectedFaceCount;
-                    max = MeshSelection.totalFaceCount;
+                    sel = MeshSelectionOld.selectedFaceCount;
+                    max = MeshSelectionOld.totalFaceCount;
                     break;
 
                 case SelectMode.Edge:
-                    sel = MeshSelection.selectedEdgeCount;
-                    max = MeshSelection.totalEdgeCount;
+                    sel = MeshSelectionOld.selectedEdgeCount;
+                    max = MeshSelectionOld.totalEdgeCount;
                     break;
 
                 default:
-                    sel = MeshSelection.selectedVertexCount;
-                    max = MeshSelection.totalVertexCount;
+                    sel = MeshSelectionOld.selectedVertexCount;
+                    max = MeshSelectionOld.totalVertexCount;
                     break;
             }
 

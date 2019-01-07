@@ -25,7 +25,7 @@ namespace UnityEditor.ProBuilder.Actions
 
         public override bool enabled
         {
-            get { return base.enabled && MeshSelection.selectedSharedVertexCount > 1; }
+            get { return base.enabled && MeshSelectionOld.selectedSharedVertexCount > 1; }
         }
 
         public override ActionResult DoAction()
@@ -34,7 +34,7 @@ namespace UnityEditor.ProBuilder.Actions
 
             UndoUtility.RecordSelection("Connect Vertices");
 
-            foreach (var mesh in MeshSelection.topInternal)
+            foreach (var mesh in MeshSelectionOld.topInternal)
             {
                 mesh.ToMesh();
                 int[] splits = mesh.Connect(mesh.selectedIndexesInternal);

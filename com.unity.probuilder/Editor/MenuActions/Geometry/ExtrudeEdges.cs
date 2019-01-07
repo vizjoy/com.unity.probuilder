@@ -30,7 +30,7 @@ namespace UnityEditor.ProBuilder.Actions
 
         public override bool enabled
         {
-            get { return base.enabled && MeshSelection.selectedEdgeCount > 0; }
+            get { return base.enabled && MeshSelectionOld.selectedEdgeCount > 0; }
         }
 
         protected override MenuActionState optionsMenuState
@@ -61,7 +61,7 @@ namespace UnityEditor.ProBuilder.Actions
 
         public override ActionResult DoAction()
         {
-            if (MeshSelection.selectedObjectCount < 1)
+            if (MeshSelectionOld.selectedObjectCount < 1)
                 return ActionResult.NoSelection;
 
             UndoUtility.RecordSelection("Extrude");
@@ -69,7 +69,7 @@ namespace UnityEditor.ProBuilder.Actions
             int extrudedFaceCount = 0;
             bool success = false;
 
-            foreach (ProBuilderMesh pb in MeshSelection.topInternal)
+            foreach (ProBuilderMesh pb in MeshSelectionOld.topInternal)
             {
                 pb.ToMesh();
                 pb.Refresh(RefreshMask.Normals);

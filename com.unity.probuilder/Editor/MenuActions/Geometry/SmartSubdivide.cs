@@ -38,7 +38,7 @@ namespace UnityEditor.ProBuilder.Actions
 
         public override bool enabled
         {
-            get { return base.enabled && (MeshSelection.selectedEdgeCount > 0 || MeshSelection.selectedFaceCount > 0); }
+            get { return base.enabled && (MeshSelectionOld.selectedEdgeCount > 0 || MeshSelectionOld.selectedFaceCount > 0); }
         }
 
         public override bool hidden

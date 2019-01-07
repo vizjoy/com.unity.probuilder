@@ -41,8 +41,8 @@ namespace UnityEditor.ProBuilder.Actions
 
         public override ActionResult DoAction()
         {
-            var selection = MeshSelection.topInternal;
-            var selectionCount = MeshSelection.selectedObjectCount;
+            var selection = MeshSelectionOld.topInternal;
+            var selectionCount = MeshSelectionOld.selectedObjectCount;
 
             UndoUtility.RecordSelection("Shrink Selection");
 
@@ -97,18 +97,18 @@ namespace UnityEditor.ProBuilder.Actions
             switch (ProBuilderEditor.selectMode)
             {
                 case SelectMode.Face:
-                    sel = MeshSelection.selectedFaceCount;
-                    max = MeshSelection.totalFaceCount;
+                    sel = MeshSelectionOld.selectedFaceCount;
+                    max = MeshSelectionOld.totalFaceCount;
                     break;
 
                 case SelectMode.Edge:
-                    sel = MeshSelection.selectedEdgeCount;
-                    max = MeshSelection.totalEdgeCount;
+                    sel = MeshSelectionOld.selectedEdgeCount;
+                    max = MeshSelectionOld.totalEdgeCount;
                     break;
 
                 default:
-                    sel = MeshSelection.selectedVertexCount;
-                    max = MeshSelection.totalVertexCount;
+                    sel = MeshSelectionOld.selectedVertexCount;
+                    max = MeshSelectionOld.totalVertexCount;
                     break;
             }
 

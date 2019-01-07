@@ -36,61 +36,61 @@ namespace UnityEditor.ProBuilder
         [MenuItem("Tools/" + PreferenceKeys.pluginTitle + "/Materials/Apply Material Preset 1 &1", false, PreferenceKeys.menuMaterialColors)]
         public static void ApplyMaterial0()
         {
-            ApplyMaterial(MeshSelection.topInternal, CurrentPalette[0]);
+            ApplyMaterial(MeshSelectionOld.topInternal, CurrentPalette[0]);
         }
 
         [MenuItem("Tools/" + PreferenceKeys.pluginTitle + "/Materials/Apply Material Preset 2 &2", false, PreferenceKeys.menuMaterialColors)]
         public static void ApplyMaterial1()
         {
-            ApplyMaterial(MeshSelection.topInternal, CurrentPalette[1]);
+            ApplyMaterial(MeshSelectionOld.topInternal, CurrentPalette[1]);
         }
 
         [MenuItem("Tools/" + PreferenceKeys.pluginTitle + "/Materials/Apply Material Preset 3 &3", false, PreferenceKeys.menuMaterialColors)]
         public static void ApplyMaterial2()
         {
-            ApplyMaterial(MeshSelection.topInternal, CurrentPalette[2]);
+            ApplyMaterial(MeshSelectionOld.topInternal, CurrentPalette[2]);
         }
 
         [MenuItem("Tools/" + PreferenceKeys.pluginTitle + "/Materials/Apply Material Preset 4 &4", false, PreferenceKeys.menuMaterialColors)]
         public static void ApplyMaterial3()
         {
-            ApplyMaterial(MeshSelection.topInternal, CurrentPalette[3]);
+            ApplyMaterial(MeshSelectionOld.topInternal, CurrentPalette[3]);
         }
 
         [MenuItem("Tools/" + PreferenceKeys.pluginTitle + "/Materials/Apply Material Preset 5 &5", false, PreferenceKeys.menuMaterialColors)]
         public static void ApplyMaterial4()
         {
-            ApplyMaterial(MeshSelection.topInternal, CurrentPalette[4]);
+            ApplyMaterial(MeshSelectionOld.topInternal, CurrentPalette[4]);
         }
 
         [MenuItem("Tools/" + PreferenceKeys.pluginTitle + "/Materials/Apply Material Preset 6 &6", false, PreferenceKeys.menuMaterialColors)]
         public static void ApplyMaterial5()
         {
-            ApplyMaterial(MeshSelection.topInternal, CurrentPalette[5]);
+            ApplyMaterial(MeshSelectionOld.topInternal, CurrentPalette[5]);
         }
 
         [MenuItem("Tools/" + PreferenceKeys.pluginTitle + "/Materials/Apply Material Preset 7 &7", false, PreferenceKeys.menuMaterialColors)]
         public static void ApplyMaterial6()
         {
-            ApplyMaterial(MeshSelection.topInternal, CurrentPalette[6]);
+            ApplyMaterial(MeshSelectionOld.topInternal, CurrentPalette[6]);
         }
 
         [MenuItem("Tools/" + PreferenceKeys.pluginTitle + "/Materials/Apply Material Preset 8 &8", false, PreferenceKeys.menuMaterialColors)]
         public static void ApplyMaterial7()
         {
-            ApplyMaterial(MeshSelection.topInternal, CurrentPalette[7]);
+            ApplyMaterial(MeshSelectionOld.topInternal, CurrentPalette[7]);
         }
 
         [MenuItem("Tools/" + PreferenceKeys.pluginTitle + "/Materials/Apply Material Preset 9 &9", false, PreferenceKeys.menuMaterialColors)]
         public static void ApplyMaterial8()
         {
-            ApplyMaterial(MeshSelection.topInternal, CurrentPalette[8]);
+            ApplyMaterial(MeshSelectionOld.topInternal, CurrentPalette[8]);
         }
 
         [MenuItem("Tools/" + PreferenceKeys.pluginTitle + "/Materials/Apply Material Preset 10 &0", false, PreferenceKeys.menuMaterialColors)]
         public static void ApplyMaterial9()
         {
-            ApplyMaterial(MeshSelection.topInternal, CurrentPalette[9]);
+            ApplyMaterial(MeshSelectionOld.topInternal, CurrentPalette[9]);
         }
 
         // Path to the required default material palette. If not valid material palettes are
@@ -194,9 +194,9 @@ namespace UnityEditor.ProBuilder
             GUILayout.Space(2);
 
             if (GUILayout.Button("Apply (Ctrl+Shift+Click)"))
-                ApplyMaterial(MeshSelection.topInternal, s_QueuedMaterial);
+                ApplyMaterial(MeshSelectionOld.topInternal, s_QueuedMaterial);
 
-            GUI.enabled = editor != null && MeshSelection.selectedFaceCount > 0;
+            GUI.enabled = editor != null && MeshSelectionOld.selectedFaceCount > 0;
             if (GUILayout.Button("Match Selection"))
             {
                 ProBuilderMesh tp;
@@ -276,12 +276,12 @@ namespace UnityEditor.ProBuilder
                 if (i < 10)
                 {
                     if (GUILayout.Button("Alt + " + (i == 9 ? 0 : (i + 1)).ToString(), EditorStyles.miniButton, GUILayout.MaxWidth(58)))
-                        ApplyMaterial(MeshSelection.topInternal, materials[i]);
+                        ApplyMaterial(MeshSelectionOld.topInternal, materials[i]);
                 }
                 else
                 {
                     if (GUILayout.Button("Apply", EditorStyles.miniButtonLeft, GUILayout.MaxWidth(44)))
-                        ApplyMaterial(MeshSelection.topInternal, materials[i]);
+                        ApplyMaterial(MeshSelectionOld.topInternal, materials[i]);
 
                     GUI.backgroundColor = Color.red;
                     if (GUILayout.Button("", EditorStyles.miniButtonRight, GUILayout.MaxWidth(14)))
@@ -355,7 +355,7 @@ namespace UnityEditor.ProBuilder
                 mesh.Optimize();
             }
 
-            if (ProBuilderEditor.instance != null && MeshSelection.selectedFaceCount > 0)
+            if (ProBuilderEditor.instance != null && MeshSelectionOld.selectedFaceCount > 0)
                 EditorUtility.ShowNotification("Set Material\n" + mat.name);
         }
 

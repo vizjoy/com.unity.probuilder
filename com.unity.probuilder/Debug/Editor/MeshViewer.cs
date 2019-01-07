@@ -173,7 +173,7 @@ namespace UnityEditor.ProBuilder.Debug
 #else
             SceneView.onSceneGUIDelegate += OnSceneGUI;
 #endif
-            MeshSelection.objectSelectionChanged += SelectionChanged;
+            MeshSelectionOld.objectSelectionChanged += SelectionChanged;
             ProBuilderMesh.elementSelectionChanged += SelectionChanged;
             EditorMeshUtility.meshOptimized += MeshOptimized;
             SelectionChanged();
@@ -183,7 +183,7 @@ namespace UnityEditor.ProBuilder.Debug
         {
             EditorMeshUtility.meshOptimized -= MeshOptimized;
             ProBuilderMesh.elementSelectionChanged -= SelectionChanged;
-            MeshSelection.objectSelectionChanged -= SelectionChanged;
+            MeshSelectionOld.objectSelectionChanged -= SelectionChanged;
 #if UNITY_2019_1_OR_NEWER
             SceneView.duringSceneGui -= OnSceneGUI;
 #else
@@ -239,7 +239,7 @@ namespace UnityEditor.ProBuilder.Debug
             m_MeshViews.Clear();
 
             foreach (var view in m_MeshViewSettings)
-                foreach (var mesh in MeshSelection.topInternal)
+                foreach (var mesh in MeshSelectionOld.topInternal)
                     m_MeshViews.Add(view.GetDebugView(mesh));
 
             Repaint();

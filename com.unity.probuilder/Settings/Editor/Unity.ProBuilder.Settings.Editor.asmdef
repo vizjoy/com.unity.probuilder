@@ -1,5 +1,5 @@
 {
-    "name": "Unity.Settings.Editor",
+    "name": "Unity.ProBuilder.Settings.Editor",
     "references": [],
     "optionalUnityReferences": [],
     "includePlatforms": [

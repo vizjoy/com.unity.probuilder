@@ -25,7 +25,7 @@ namespace UnityEditor.ProBuilder.Actions
 
         public override bool enabled
         {
-            get { return MeshSelection.selectedObjectCount > 0; }
+            get { return MeshSelectionOld.selectedObjectCount > 0; }
         }
 
         public override bool hidden
@@ -35,7 +35,7 @@ namespace UnityEditor.ProBuilder.Actions
 
         public override ActionResult DoAction()
         {
-            var res = ExportWithFileDialog(MeshSelection.topInternal);
+            var res = ExportWithFileDialog(MeshSelectionOld.topInternal);
             Export.PingExportedModel(res);
             return new ActionResult(ActionResult.Status.Success, "Make Asset & Prefab");
         }

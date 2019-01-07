@@ -295,7 +295,7 @@ namespace UnityEditor.ProBuilder
 #endif
             ProGridsInterface.SubscribePushToGridEvent(PushToGrid);
             ProGridsInterface.SubscribeToolbarEvent(ProGridsToolbarOpen);
-            MeshSelection.objectSelectionChanged += OnObjectSelectionChanged;
+            MeshSelectionOld.objectSelectionChanged += OnObjectSelectionChanged;
 
             ProGridsToolbarOpen(ProGridsInterface.SceneToolbarIsExtended());
 
@@ -339,7 +339,7 @@ namespace UnityEditor.ProBuilder
 #endif
             ProGridsInterface.UnsubscribePushToGridEvent(PushToGrid);
             ProGridsInterface.UnsubscribeToolbarEvent(ProGridsToolbarOpen);
-            MeshSelection.objectSelectionChanged -= OnObjectSelectionChanged;
+            MeshSelectionOld.objectSelectionChanged -= OnObjectSelectionChanged;
 
             // re-enable unity wireframe
             // todo set wireframe override in pb_Selection, no pb_Editor
@@ -597,7 +597,7 @@ namespace UnityEditor.ProBuilder
 
             Tools.current = Tool.None;
 
-            if (selectMode.IsMeshElementMode() && MeshSelection.selectedVertexCount > 0)
+            if (selectMode.IsMeshElementMode() && MeshSelectionOld.selectedVertexCount > 0)
             {
                 var tool = GetToolForSelectMode(m_CurrentTool, m_SelectMode);
 
@@ -1004,14 +1004,14 @@ namespace UnityEditor.ProBuilder
         void UpdateSelection(bool selectionChanged = true)
         {
             // todo remove selection property
-            selection = MeshSelection.topInternal.ToArray();
+            selection = MeshSelectionOld.topInternal.ToArray();
 
             UpdateMeshHandles(selectionChanged);
 
             if (selectionChanged)
             {
                 UpdateSceneInfo();
-                MeshSelection.OnElementSelectionChanged();
+                MeshSelectionOld.OnElementSelectionChanged();
             }
 
             if (selectionUpdated != null)
@@ -1025,7 +1025,7 @@ namespace UnityEditor.ProBuilder
 
             try
             {
-                EditorMeshHandles.RebuildSelectedHandles(MeshSelection.topInternal, selectMode, selectionOrVertexCountChanged);
+                EditorMeshHandles.RebuildSelectedHandles(MeshSelectionOld.topInternal, selectMode, selectionOrVertexCountChanged);
             }
             catch
             {
@@ -1038,14 +1038,14 @@ namespace UnityEditor.ProBuilder
         {
             m_SceneInfo.text = string.Format(
                     "Faces: <b>{0}</b>\nTriangles: <b>{1}</b>\nVertices: <b>{2} ({3})</b>\n\nSelected Faces: <b>{4}</b>\nSelected Edges: <b>{5}</b>\nSelected Vertices: <b>{6} ({7})</b>",
-                    MeshSelection.totalFaceCount.ToString(),
-                    MeshSelection.totalTriangleCountCompiled.ToString(),
-                    MeshSelection.totalCommonVertexCount.ToString(),
-                    MeshSelection.totalVertexCountOptimized.ToString(),
-                    MeshSelection.selectedFaceCount.ToString(),
-                    MeshSelection.selectedEdgeCount.ToString(),
-                    MeshSelection.selectedSharedVertexCount.ToString(),
-                    MeshSelection.selectedVertexCount.ToString());
+                    MeshSelectionOld.totalFaceCount.ToString(),
+                    MeshSelectionOld.totalTriangleCountCompiled.ToString(),
+                    MeshSelectionOld.totalCommonVertexCount.ToString(),
+                    MeshSelectionOld.totalVertexCountOptimized.ToString(),
+                    MeshSelectionOld.selectedFaceCount.ToString(),
+                    MeshSelectionOld.selectedEdgeCount.ToString(),
+                    MeshSelectionOld.selectedSharedVertexCount.ToString(),
+                    MeshSelectionOld.selectedVertexCount.ToString());
         }
 
         internal void ClearElementSelection()

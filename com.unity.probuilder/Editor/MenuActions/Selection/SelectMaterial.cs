@@ -39,7 +39,7 @@ namespace UnityEditor.ProBuilder.Actions
 
         public override bool enabled
         {
-            get { return base.enabled && MeshSelection.selectedFaceCount > 0; }
+            get { return base.enabled && MeshSelectionOld.selectedFaceCount > 0; }
         }
 
         protected override MenuActionState optionsMenuState
@@ -72,14 +72,14 @@ namespace UnityEditor.ProBuilder.Actions
             IEnumerable<ProBuilderMesh> selection;
 
             if (m_RestrictToSelectedObjects)
-                selection = MeshSelection.topInternal;
+                selection = MeshSelectionOld.topInternal;
             else
                 selection = Object.FindObjectsOfType<ProBuilderMesh>();
 
             UndoUtility.RecordSelection("Select Faces with Material");
 
             HashSet<int> sel = new HashSet<int>(
-                    MeshSelection.topInternal
+                    MeshSelectionOld.topInternal
                     .SelectMany(x => x.selectedFacesInternal.Select(y => y.submeshIndex)));
 
             List<GameObject> newSelection = new List<GameObject>();

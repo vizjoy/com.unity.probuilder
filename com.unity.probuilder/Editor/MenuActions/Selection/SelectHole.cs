@@ -39,7 +39,7 @@ namespace UnityEditor.ProBuilder.Actions
 
         public override bool enabled
         {
-            get { return base.enabled && (MeshSelection.selectedVertexCount > 0 || MeshSelection.selectedEdgeCount > 0); }
+            get { return base.enabled && (MeshSelectionOld.selectedVertexCount > 0 || MeshSelectionOld.selectedEdgeCount > 0); }
         }
 
         public override ActionResult DoAction()
@@ -48,7 +48,7 @@ namespace UnityEditor.ProBuilder.Actions
 
             ActionResult res = ActionResult.NoSelection;
 
-            foreach (ProBuilderMesh pb in MeshSelection.topInternal)
+            foreach (ProBuilderMesh pb in MeshSelectionOld.topInternal)
             {
                 bool selectAll = pb.selectedIndexesInternal == null || pb.selectedIndexesInternal.Length < 1;
                 IEnumerable<int> indexes = selectAll ? pb.facesInternal.SelectMany(x => x.indexes) : pb.selectedIndexesInternal;

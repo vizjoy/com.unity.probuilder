@@ -47,12 +47,12 @@ namespace UnityEditor.ProBuilder.Actions
 
         public override bool enabled
         {
-            get { return base.enabled && MeshSelection.selectedFaceCount > 0; }
+            get { return base.enabled && MeshSelectionOld.selectedFaceCount > 0; }
         }
 
         public override ActionResult DoAction()
         {
-            var selection = MeshSelection.topInternal;
+            var selection = MeshSelectionOld.topInternal;
 
             UndoUtility.RecordSelection("Select Face Loop");
 

@@ -39,12 +39,12 @@ namespace UnityEditor.ProBuilder.Actions
 
         public override bool enabled
         {
-            get { return base.enabled && MeshSelection.selectedObjectCount > 0; }
+            get { return base.enabled && MeshSelectionOld.selectedObjectCount > 0; }
         }
 
         public override ActionResult DoAction()
         {
-            if (MeshSelection.selectedObjectCount < 1)
+            if (MeshSelectionOld.selectedObjectCount < 1)
                 return ActionResult.NoSelection;
 
             UndoUtility.RecordSelection("Invert Selection");
@@ -52,7 +52,7 @@ namespace UnityEditor.ProBuilder.Actions
             switch (ProBuilderEditor.selectMode)
             {
                 case SelectMode.Vertex:
-                    foreach (var mesh in MeshSelection.topInternal)
+                    foreach (var mesh in MeshSelectionOld.topInternal)
                     {
                         SharedVertex[] sharedIndexes = mesh.sharedVerticesInternal;
                         List<int> selectedSharedIndexes = new List<int>();
@@ -74,7 +74,7 @@ namespace UnityEditor.ProBuilder.Actions
 
                 case SelectMode.Face:
                 case SelectMode.TextureFace:
-                    foreach (var mesh in MeshSelection.topInternal)
+                    foreach (var mesh in MeshSelectionOld.topInternal)
                     {
                         IEnumerable<Face> inverse = mesh.facesInternal.Where(x => !mesh.selectedFacesInternal.Contains(x));
                         mesh.SetSelectedFaces(inverse.ToArray());
@@ -83,7 +83,7 @@ namespace UnityEditor.ProBuilder.Actions
 
                 case SelectMode.Edge:
 
-                    foreach (var mesh in MeshSelection.topInternal)
+                    foreach (var mesh in MeshSelectionOld.topInternal)
                     {
                         var universalEdges = mesh.GetSharedVertexHandleEdges(mesh.facesInternal.SelectMany(x => x.edges)).ToArray();
                         var universal_selected_edges = EdgeUtility.GetSharedVertexHandleEdges(mesh, mesh.selectedEdges).Distinct();

@@ -25,7 +25,7 @@ namespace UnityEditor.ProBuilder.Actions
 
         public override bool enabled
         {
-            get { return base.enabled && MeshSelection.selectedEdgeCountObjectMax > 1; }
+            get { return base.enabled && MeshSelectionOld.selectedEdgeCountObjectMax > 1; }
         }
 
         public override ActionResult DoAction()
@@ -34,7 +34,7 @@ namespace UnityEditor.ProBuilder.Actions
 
             UndoUtility.RecordSelection("Connect Edges");
 
-            foreach (var mesh in MeshSelection.topInternal)
+            foreach (var mesh in MeshSelectionOld.topInternal)
             {
                 Edge[] connections;
                 Face[] faces;

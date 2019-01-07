@@ -44,7 +44,7 @@ namespace UnityEditor.ProBuilder.Actions
 
         public override bool enabled
         {
-            get { return base.enabled && (MeshSelection.selectedEdgeCount > 0 || MeshSelection.selectedSharedVertexCount > 0); }
+            get { return base.enabled && (MeshSelectionOld.selectedEdgeCount > 0 || MeshSelectionOld.selectedSharedVertexCount > 0); }
         }
 
         protected override MenuActionState optionsMenuState
@@ -73,7 +73,7 @@ namespace UnityEditor.ProBuilder.Actions
 
         public override ActionResult DoAction()
         {
-            if (MeshSelection.selectedObjectCount < 1)
+            if (MeshSelectionOld.selectedObjectCount < 1)
                 return ActionResult.NoSelection;
 
             UndoUtility.RecordSelection("Fill Hole");
@@ -82,7 +82,7 @@ namespace UnityEditor.ProBuilder.Actions
             int filled = 0;
             bool wholePath = m_SelectEntirePath;
 
-            foreach (ProBuilderMesh mesh in MeshSelection.topInternal)
+            foreach (ProBuilderMesh mesh in MeshSelectionOld.topInternal)
             {
                 bool selectAll = mesh.selectedIndexesInternal == null || mesh.selectedIndexesInternal.Length < 1;
                 IEnumerable<int> indexes = selectAll ? mesh.facesInternal.SelectMany(x => x.indexes) : mesh.selectedIndexesInternal;

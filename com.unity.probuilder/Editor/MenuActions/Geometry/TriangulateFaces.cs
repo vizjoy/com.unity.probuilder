@@ -35,7 +35,7 @@ namespace UnityEditor.ProBuilder.Actions
 
         public override bool enabled
         {
-            get { return base.enabled && MeshSelection.selectedFaceCount > 0; }
+            get { return base.enabled && MeshSelectionOld.selectedFaceCount > 0; }
         }
 
         public override ActionResult DoAction()
@@ -44,7 +44,7 @@ namespace UnityEditor.ProBuilder.Actions
 
             UndoUtility.RecordSelection("Triangulate Faces");
 
-            foreach (ProBuilderMesh mesh in MeshSelection.topInternal)
+            foreach (ProBuilderMesh mesh in MeshSelectionOld.topInternal)
             {
                 mesh.ToMesh();
                 Face[] triangulatedFaces = mesh.ToTriangles(mesh.selectedFacesInternal);

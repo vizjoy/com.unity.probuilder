@@ -38,7 +38,7 @@ namespace UnityEditor.ProBuilder.Actions
 
         public override bool enabled
         {
-            get { return base.enabled && MeshSelection.selectedFaceCount > 0; }
+            get { return base.enabled && MeshSelectionOld.selectedFaceCount > 0; }
         }
 
         public override bool hidden
@@ -61,11 +61,11 @@ namespace UnityEditor.ProBuilder.Actions
         {
             UndoUtility.RecordSelection("Select Faces with Smoothing Group");
 
-            HashSet<int> selectedSmoothGroups = new HashSet<int>(MeshSelection.topInternal.SelectMany(x => x.selectedFacesInternal.Select(y => y.smoothingGroup)));
+            HashSet<int> selectedSmoothGroups = new HashSet<int>(MeshSelectionOld.topInternal.SelectMany(x => x.selectedFacesInternal.Select(y => y.smoothingGroup)));
 
             List<GameObject> newSelection = new List<GameObject>();
 
-            foreach (ProBuilderMesh pb in MeshSelection.topInternal)
+            foreach (ProBuilderMesh pb in MeshSelectionOld.topInternal)
             {
                 IEnumerable<Face> matches = pb.facesInternal.Where(x => selectedSmoothGroups.Contains(x.smoothingGroup));
 

@@ -32,17 +32,17 @@ namespace UnityEditor.ProBuilder.Actions
 
         public override bool enabled
         {
-            get { return base.enabled && MeshSelection.selectedObjectCount > 0; }
+            get { return base.enabled && MeshSelectionOld.selectedObjectCount > 0; }
         }
 
         public override ActionResult DoAction()
         {
-            if (MeshSelection.selectedObjectCount < 1)
+            if (MeshSelectionOld.selectedObjectCount < 1)
                 return ActionResult.NoSelection;
 
             UndoUtility.RecordMeshAndTransformSelection("Freeze Transforms");
 
-            var selection = MeshSelection.topInternal;
+            var selection = MeshSelectionOld.topInternal;
             Vector3[][] positions = new Vector3[selection.Count][];
 
             for (int i = 0, c = selection.Count; i < c; i++)
