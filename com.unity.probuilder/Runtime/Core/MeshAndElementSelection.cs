@@ -24,11 +24,8 @@ namespace UnityEngine.ProBuilder
     /// Represents the state of a ProBuilderMesh and it's selected elements.
     /// </summary>
     [Serializable]
-    class MeshAndElementSelection
+    class AttributeSelection
     {
-        [SerializeField]
-        ProBuilderMesh m_Mesh;
-
         [SerializeField]
         List<VertexIndex> m_Vertices;
 
@@ -37,11 +34,6 @@ namespace UnityEngine.ProBuilder
 
         [SerializeField]
         List<Face> m_Faces;
-
-        public ProBuilderMesh mesh
-        {
-            get { return m_Mesh; }
-        }
 
         public IEnumerable<VertexIndex> vertices
         {
