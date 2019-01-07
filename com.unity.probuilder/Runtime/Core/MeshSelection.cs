@@ -23,11 +23,11 @@ namespace UnityEngine.ProBuilder
 		public IEnumerable<T> GetSelectedElements<T>(ProBuilderMesh mesh) where T : ISelectable
 		{
 			AttributeSelection selection;
-			
+
 			if (m_Selection.TryGetValue(mesh, out selection))
 				return selection.Get<T>();
 
-			return new int[0];
+			return new T[0];
 		}
 
 		internal void SyncUnitySelection(GameObject[] gameObjects)

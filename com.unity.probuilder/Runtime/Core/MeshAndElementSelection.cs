@@ -53,6 +53,18 @@ namespace UnityEngine.ProBuilder
             set { m_Faces = value.ToList(); }
         }
 
+        public IEnumerable<T> Get<T>() where T : ISelectable
+        {
+            if (typeof(T) == typeof(VertexIndex))
+                return (IEnumerable<T>) vertices;
+            if (typeof(T) == typeof(Edge))
+                return (IEnumerable<T>) edges;
+            if (typeof(T) == typeof(Face))
+                return (IEnumerable<T>) faces;
+
+            return new List<T>();
+        }
+
         // Cached information
         HashSet<VertexIndex> m_CommonVertices;
 

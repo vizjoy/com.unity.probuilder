@@ -73,14 +73,14 @@ namespace UnityEngine.ProBuilder
             s_SelectedElementGroupsDirty = true;
         }
 
-        internal static IEnumerable<MeshAndElementSelection> elementSelection
-        {
-            get
-            {
-                RecalculateSelectedElementGroups();
-                return s_ElementSelection;
-            }
-        }
+//        internal static IEnumerable<MeshAndElementSelection> elementSelection
+//        {
+//            get
+//            {
+//                RecalculateSelectedElementGroups();
+//                return s_ElementSelection;
+//            }
+//        }
 
         static MeshSelectionOld()
         {
@@ -381,7 +381,7 @@ namespace UnityEngine.ProBuilder
 
         internal static Vector3 GetHandlePosition()
         {
-            var active = GetActiveSelectionGroup();
+//            var active = GetActiveSelectionGroup();
             return Vector3.zero;
 //
 //            return active != null && active.elementGroups.Count > 0
@@ -391,7 +391,7 @@ namespace UnityEngine.ProBuilder
 
         internal static Quaternion GetHandleRotation()
         {
-            var active = GetActiveSelectionGroup();
+//            var active = GetActiveSelectionGroup();
 
             return Quaternion.identity;
 
@@ -400,15 +400,15 @@ namespace UnityEngine.ProBuilder
 //                : Quaternion.identity;
         }
 
-        internal static MeshAndElementSelection GetActiveSelectionGroup()
-        {
-            foreach (var pair in elementSelection)
-            {
-                if (pair.mesh == s_ActiveMesh)
-                    return pair;
-            }
-
-            return null;
-       }
+//        internal static MeshAndElementSelection GetActiveSelectionGroup()
+//        {
+//            foreach (var pair in elementSelection)
+//            {
+//                if (pair.mesh == s_ActiveMesh)
+//                    return pair;
+//            }
+//
+//            return null;
+//       }
     }
 }
