@@ -6,7 +6,7 @@ using UObject = UnityEngine.Object;
 
 class TempMenuItems : EditorWindow
 {
-    [MenuItem("Tools/Temp Menu Item &d", false, 1000)]
+//    [MenuItem("Tools/Temp Menu Item &d", false, 1000)]
     static void MenuInit()
     {
     }

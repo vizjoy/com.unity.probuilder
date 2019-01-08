@@ -15,6 +15,40 @@ namespace UnityEngine.ProBuilder
 		[SerializeField]
 		AttributeSelection[] m_SelectionValue;
 
+		public static event Action meshSelectionWillChange;
+		public static event Action meshSelectionDidChange;
+		public static event Action elementSelectionWillChange;
+		public static event Action elementSelectionDidChange;
+
+		public MeshSelection()
+		{
+			AttributeSelection.selectionWillChange += (x) =>
+			{
+				if (elementSelectionWillChange != null)
+					elementSelectionWillChange();
+			};
+
+			AttributeSelection.selectionDidChange += (x) =>
+			{
+				if (elementSelectionDidChange != null)
+					elementSelectionDidChange();
+			};
+		}
+
+		public void OnBeforeSerialize()
+		{
+			m_SelectionKeys = m_Selection.Keys.ToArray();
+			m_SelectionValue = m_Selection.Values.ToArray();
+		}
+
+		public void OnAfterDeserialize()
+		{
+			for (int i = 0, c = m_SelectionKeys.Length; i < c; i++)
+			{
+				m_Selection.Add(m_SelectionKeys[i], m_SelectionValue[i]);
+			}
+		}
+
 		public IEnumerable<ProBuilderMesh> meshes
 		{
 			get { return m_Selection.Keys; }
@@ -47,20 +81,6 @@ namespace UnityEngine.ProBuilder
 			}
 
 			m_Selection = selection;
-		}
-
-		public void OnBeforeSerialize()
-		{
-			m_SelectionKeys = m_Selection.Keys.ToArray();
-			m_SelectionValue = m_Selection.Values.ToArray();
-		}
-
-		public void OnAfterDeserialize()
-		{
-			for (int i = 0, c = m_SelectionKeys.Length; i < c; i++)
-			{
-				m_Selection.Add(m_SelectionKeys[i], m_SelectionValue[i]);
-			}
 		}
 	}
 }

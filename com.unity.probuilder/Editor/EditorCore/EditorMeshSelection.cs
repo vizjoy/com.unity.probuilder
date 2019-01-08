@@ -1,35 +1,44 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.ProBuilder;
 
 namespace UnityEditor.ProBuilder
 {
+	[Serializable]
+	class MeshSelectionObject : ScriptableSingleton<MeshSelectionObject>
+	{
+		public MeshSelection meshSelection = new MeshSelection();
+	}
+
 	/// <summary>
 	/// This keeps the runtime MeshSelection static class in sync with the Editor selection.
 	/// </summary>
 	[InitializeOnLoad]
 	static class EditorMeshSelection
 	{
+		public static event Action meshSelectionWillChange;
+		public static event Action meshSelectionDidChange;
+
 		static EditorMeshSelection()
 		{
 			Selection.selectionChanged += UnitySelectionChanged;
-//			EditorMeshUtility.meshOptimized += (x, y) => { s_TotalElementCountCacheIsDirty = true; };
+		}
+		
+		static MeshSelection selection
+		{
+			get { return MeshSelectionObject.instance.meshSelection; }
 		}
 
-		static ProBuilderMesh[] selection
+		static IEnumerable<ProBuilderMesh> top
 		{
-			get
-			{
-				return ProBuilderEditor.instance != null
-					? ProBuilderEditor.instance.selection
-					: InternalUtility.GetComponents<ProBuilderMesh>(Selection.transforms);
-			}
+			get { return selection.meshes; }
 		}
 
 		static void UnitySelectionChanged()
 		{
-
+			selection.SyncUnitySelection(Selection.gameObjects);
 		}
 	}
 

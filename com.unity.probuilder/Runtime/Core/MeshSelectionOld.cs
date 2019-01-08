@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -8,11 +9,12 @@ namespace UnityEngine.ProBuilder
     /// <summary>
     /// Helper functions for working with Unity object selection and ProBuilder mesh element selections.
     /// </summary>
+	[Obsolete("Use EditorMeshSelection")]
     public static class MeshSelectionOld
     {
         static List<ProBuilderMesh> s_TopSelection = new List<ProBuilderMesh>();
         static ProBuilderMesh s_ActiveMesh;
-        static List<MeshAndElementSelection> s_ElementSelection = new List<MeshAndElementSelection>();
+//        static List<MeshAndElementSelection> s_ElementSelection = new List<MeshAndElementSelection>();
         static bool s_TotalElementCountCacheIsDirty = true;
         static bool s_SelectedElementGroupsDirty = true;
         static Bounds s_SelectionBounds = new Bounds();
@@ -105,7 +107,7 @@ namespace UnityEngine.ProBuilder
             // GameObjects returns both parent and child when both are selected, where transforms only returns the top-most
             // transform.
             s_TopSelection.Clear();
-            s_ElementSelection.Clear();
+//            s_ElementSelection.Clear();
 
             for (int i = 0, c = gameObjects.Length; i < c; i++)
             {

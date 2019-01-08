@@ -700,7 +700,7 @@ namespace UnityEditor.ProBuilder
                 {
                     if ((e.modifiers & (EventModifiers.Control | EventModifiers.Shift)) ==
                         (EventModifiers.Control | EventModifiers.Shift))
-                        Actions.SelectFaceRing.MenuRingAndLoopFaces(selection);
+                        EditorUtility.ShowNotification(SelectFaceRing.MenuRingAndLoopFaces(selection).notification);
                     else if (e.control)
                         EditorUtility.ShowNotification(EditorToolbarLoader.GetInstance<Actions.SelectFaceRing>().DoAction());
                     else if (e.shift)

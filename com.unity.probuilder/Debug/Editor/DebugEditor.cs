@@ -19,12 +19,12 @@ namespace UnityEditor.ProBuilder
 
         void OnEnable()
         {
-            MeshSelectionOld.objectSelectionChanged += OnSelectionChanged;
+            EditorMeshSelection.meshSelectionDidChange += OnSelectionChanged;
         }
 
         void OnDisable()
         {
-            MeshSelectionOld.objectSelectionChanged -= OnSelectionChanged;
+            EditorMeshSelection.meshSelectionDidChange -= OnSelectionChanged;
         }
 
         void OnSelectionChanged()

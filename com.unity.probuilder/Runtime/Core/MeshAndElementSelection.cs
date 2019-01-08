@@ -35,22 +35,46 @@ namespace UnityEngine.ProBuilder
         [SerializeField]
         List<Face> m_Faces;
 
+        public static event Action<AttributeSelection> selectionWillChange;
+        public static event Action<AttributeSelection> selectionDidChange;
+
         public IEnumerable<VertexIndex> vertices
         {
             get { return m_Vertices; }
-            set { m_Vertices = value.ToList(); }
+            set
+            {
+                if (selectionWillChange != null)
+                    selectionWillChange(this);
+                m_Vertices = value.ToList();
+                if (selectionDidChange != null)
+                    selectionDidChange(this);
+            }
         }
 
         public IEnumerable<Edge> edges
         {
             get { return m_Edges; }
-            set { m_Edges = value.ToList(); }
+            set
+            {
+                if (selectionWillChange != null)
+                    selectionWillChange(this);
+                m_Edges = value.ToList();
+                if (selectionDidChange != null)
+                    selectionDidChange(this);
+            }
         }
 
         public IEnumerable<Face> faces
         {
             get { return m_Faces; }
-            set { m_Faces = value.ToList(); }
+            set
+            {
+                if (selectionWillChange != null)
+                    selectionWillChange(this);
+                m_Faces = value.ToList();
+                if (selectionDidChange != null)
+                    selectionDidChange(this);
+            }
         }
 
         public IEnumerable<T> Get<T>() where T : ISelectable
