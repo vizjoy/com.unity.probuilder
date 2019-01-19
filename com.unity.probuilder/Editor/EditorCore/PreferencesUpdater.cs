@@ -205,7 +205,6 @@ namespace UnityEditor.ProBuilder
             PreferencesInternal.DeleteKey(PreferenceKeys.pbShiftOnlyTooltips);
             PreferencesInternal.DeleteKey(PreferenceKeys.pbDrawAxisLines);
             PreferencesInternal.DeleteKey(PreferenceKeys.pbElementSelectIsHamFisted);
-            PreferencesInternal.DeleteKey(PreferenceKeys.pbCollapseVertexToFirst);
             PreferencesInternal.DeleteKey(PreferenceKeys.pbMeshesAreAssets);
             PreferencesInternal.DeleteKey(PreferenceKeys.pbDragSelectWholeElement);
             PreferencesInternal.DeleteKey(PreferenceKeys.pbEnableExperimental);

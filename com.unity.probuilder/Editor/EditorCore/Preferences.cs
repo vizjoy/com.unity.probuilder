@@ -325,7 +325,6 @@ namespace UnityEditor.ProBuilder
                 PreferencesInternal.DeleteKey(PreferenceKeys.pbDrawAxisLines);
                 PreferencesInternal.DeleteKey(PreferenceKeys.pbElementSelectIsHamFisted);
 // #pragma warning restore 612
-                PreferencesInternal.DeleteKey(PreferenceKeys.pbCollapseVertexToFirst);
                 PreferencesInternal.DeleteKey(PreferenceKeys.pbMeshesAreAssets);
 // #pragma warning disable 618
                 PreferencesInternal.DeleteKey(PreferenceKeys.pbDragSelectWholeElement);

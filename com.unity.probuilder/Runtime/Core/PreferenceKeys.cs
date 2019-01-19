@@ -161,8 +161,6 @@ namespace UnityEngine.ProBuilder
         [Obsolete("Use Pref<T> or Settings class directly.")]
         internal const string pbDrawAxisLines = "pbDrawAxisLines";
         [Obsolete("Use Pref<T> or Settings class directly.")]
-        internal const string pbCollapseVertexToFirst = "pbCollapseVertexToFirst";
-        [Obsolete("Use Pref<T> or Settings class directly.")]
         internal const string pbMeshesAreAssets = "pbMeshesAreAssets";
         [Obsolete("Use Pref<T> or Settings class directly.")]
         internal const string pbElementSelectIsHamFisted = "pbElementSelectIsHamFisted";

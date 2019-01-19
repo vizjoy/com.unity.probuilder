@@ -22,9 +22,9 @@ namespace UnityEngine.ProBuilder.MeshOperations
         /// </remarks>
         /// <param name="mesh">Target mesh.</param>
         /// <param name="indexes">The indexes to merge to a single shared vertex.</param>
-        /// <param name="collapseToFirst">If true, instead of merging all vertices to the average position, the vertices will be collapsed onto the first vertex position.</param>
+        /// <param name= "handlePosition">Current handle position, pre-converted to Local Space
         /// <returns>The first available local index created as a result of the merge. -1 if action is unsuccessfull.</returns>
-        public static int MergeVertices(this ProBuilderMesh mesh, int[] indexes, bool collapseToFirst = false)
+        public static int MergeVertices(this ProBuilderMesh mesh, int[] indexes, Vector3 handlePosition = default(Vector3))
         {
             if (mesh == null)
                 throw new ArgumentNullException("mesh");
@@ -33,7 +33,8 @@ namespace UnityEngine.ProBuilder.MeshOperations
                 throw new ArgumentNullException("indexes");
 
             Vertex[] vertices = mesh.GetVertices();
-            Vertex cen = collapseToFirst ? vertices[indexes[0]] : Vertex.Average(vertices, indexes);
+            Vertex cen = Vertex.Average(vertices, indexes);
+            cen.position = handlePosition;
             mesh.SetVerticesCoincident(indexes);
             UVEditing.SplitUVs(mesh, indexes);
             int sharedVertexHandle = mesh.GetSharedVertexHandle(indexes.First());
