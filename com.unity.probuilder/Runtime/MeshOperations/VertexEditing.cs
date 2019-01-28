@@ -33,7 +33,7 @@ namespace UnityEngine.ProBuilder.MeshOperations
                 throw new ArgumentNullException("indexes");
 
             Vertex[] vertices = mesh.GetVertices();
-            Vertex cen = Vertex.Average(vertices, indexes);
+            Vertex cen;// = Vertex.Average(vertices, indexes);
             cen.position = handlePosition;
             mesh.SetVerticesCoincident(indexes);
             UVEditing.SplitUVs(mesh, indexes);
